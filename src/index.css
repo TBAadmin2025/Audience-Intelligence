@@ -1,0 +1,93 @@
+/* ==========================================
+   VLARI DESIGN SYSTEM
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+  
+  --color-midnight: #0A111F;
+  --color-navy-deep: #121E38;
+  --color-charcoal: #161618;
+  --color-gold-antique: #AA7C11;
+  --color-gold-metallic: #D4AF37;
+  --color-gold-light: #FCEFB4;
+  --color-marble: #EBE6DF;
+}
+
+body {
+  @apply bg-midnight text-marble font-sans antialiased;
+}
+
+.vlari-bg {
+  background-color: #0A111F;
+  background-image: 
+      radial-gradient(circle at 50% 0%, rgba(18, 30, 56, 0.8) 0%, rgba(10, 17, 31, 1) 60%),
+      url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+  color: #EBE6DF;
+  min-height: 100vh;
+}
+
+.serif { font-family: var(--font-serif); }
+.sans { font-family: var(--font-sans); }
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #DFB951 0%, #FFF8D6 30%, #C29624 65%, #8A650C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #AA7C11 0%, #D4AF37 100%);
+}
+
+.artisan-card {
+  background: rgba(22, 22, 24, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.artisan-card:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  background: rgba(22, 22, 24, 0.6);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #EBE6DF;
+  transition: all 0.3s ease;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(212, 175, 55, 0.5);
+  outline: none;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #AA7C11, #D4AF37);
+  color: #0A111F;
+  border: none;
+  transition: all 0.4s ease;
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4);
+  transform: translateY(-2px);
+}
+.btn-primary:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+  cursor: not-allowed;
+}
