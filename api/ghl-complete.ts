@@ -30,11 +30,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const contactId = searchData?.contact?.id;
     if (!contactId) return;
 
-    const scoreLabel =
-      results.score >= 80 ? "Strong" :
-      results.score >= 50 ? "Moderate" :
-      "Needs Optimization";
-
     const reportUrl = `/report/${sessionId}`;
 
     await fetch(
@@ -50,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           tags: ["diagnostic-completed"],
           customFields: [
             { key: "diagnostic_overall_score", field_value: String(results.score) },
-            { key: "diagnostic_score_label", field_value: scoreLabel },
+            { key: "diagnostic_redirection_potential", field_value: `$${Math.round(results.totalOpportunity.low).toLocaleString()} - $${Math.round(results.totalOpportunity.high).toLocaleString()}` },
             { key: "diagnostic_report_url", field_value: reportUrl },
             { key: "diagnostic_commentary", field_value: commentary || "" },
             { key: "diagnostic_completed_date", field_value: new Date().toISOString() },
