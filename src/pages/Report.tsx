@@ -151,9 +151,9 @@ export default function Report() {
   };
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "results", label: "Your Results" },
-    { id: "quadrants", label: "Quadrant Diagnostics" },
-    { id: "fix", label: "Fix My Flow" },
+    { id: "results", label: "Your Summary" },
+    { id: "quadrants", label: "Breakdown" },
+    { id: "fix", label: "Redirect My Wealth" },
   ];
 
   const offerBlocks = [
@@ -182,29 +182,30 @@ export default function Report() {
       </header>
 
       {/* Tab Navigation */}
-      <nav className="bg-midnight/60 backdrop-blur-md border-b border-white/5 sticky top-[73px] z-40">
-        <div className="max-w-[1400px] mx-auto px-10 flex gap-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => { setActiveTab(tab.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              className={`relative px-8 py-5 text-[11px] font-bold uppercase tracking-[0.3em] transition-all duration-500 ${
-                activeTab === tab.id
-                  ? "text-gold-metallic border-b-2 border-gold-metallic"
-                  : tab.id === "fix"
-                    ? "text-gold-metallic animate-pulse"
-                    : "text-marble/40 hover:text-marble/70"
-              } ${tab.id === "fix" ? "fix-tab-glow" : ""}`}
-            >
-              {tab.id === "fix" && (
-                <span className="absolute inset-0 rounded-sm bg-gold-metallic/10 animate-pulse pointer-events-none" />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                {tab.id === "fix" && <Sparkles className="w-4 h-4" />}
-                {tab.label}
-              </span>
-            </button>
-          ))}
+      <nav className="bg-midnight/80 backdrop-blur-md border-b border-gold-metallic/15 border-t border-t-white/5 sticky top-[73px] z-40 shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+        <div className="max-w-[1400px] mx-auto px-10 flex items-stretch gap-1">
+          {tabs.map((tab) => {
+            const isFixTab = tab.id === "fix";
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                className={`relative transition-all duration-500 ${
+                  isFixTab
+                    ? "bg-[#C9A84C] text-midnight px-10 py-5 my-3 text-[12px] font-extrabold uppercase tracking-[0.25em] rounded-sm fix-tab-glow hover:brightness-110 active:scale-95 ml-auto"
+                    : isActive
+                      ? "text-white border-b-2 border-gold-metallic px-8 py-5 text-[11px] font-bold uppercase tracking-[0.3em]"
+                      : "text-marble/40 hover:text-marble/70 px-8 py-5 text-[11px] font-bold uppercase tracking-[0.3em]"
+                }`}
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  {isFixTab && <Sparkles className="w-4 h-4" />}
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </nav>
 
@@ -248,10 +249,10 @@ export default function Report() {
                 <div className="pt-10 border-t border-white/5 space-y-6">
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Annual Redirection Potential</span>
-                    <span className="text-4xl md:text-5xl serif font-medium text-gold-gradient">${results.totalOpportunity.expected.toLocaleString()}</span>
+                    <span className="text-4xl md:text-5xl serif font-medium text-gold-gradient">${Math.round(results.totalOpportunity.expected).toLocaleString()}</span>
                   </div>
                   <div className="text-[10px] text-marble/20 italic tracking-widest">
-                    Modeled Range: ${results.totalOpportunity.low.toLocaleString()} — ${results.totalOpportunity.high.toLocaleString()}
+                    Modeled Range: ${Math.round(results.totalOpportunity.low).toLocaleString()} — ${Math.round(results.totalOpportunity.high).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -263,7 +264,7 @@ export default function Report() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
               <div className="space-y-4 overflow-hidden">
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Modeled Federal Tax (2026)</div>
-                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble truncate">${results.baselineFedTax.toLocaleString()}</div>
+                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble truncate">${Math.round(results.baselineFedTax).toLocaleString()}</div>
                 <p className="text-[10px] text-marble/20 tracking-widest uppercase">Estimated Exposure</p>
               </div>
               <div className="space-y-4 border-x border-white/5 px-8 overflow-hidden">
@@ -334,15 +335,15 @@ export default function Report() {
               <div className="grid grid-cols-3 gap-4 md:gap-12 items-center">
                 <div className="p-4 md:p-10 bg-white/5 border border-white/5 rounded-sm space-y-3 overflow-hidden text-center">
                   <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] text-marble/30">Conservative</div>
-                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${results.totalOpportunity.low.toLocaleString()}</div>
+                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${Math.round(results.totalOpportunity.low).toLocaleString()}</div>
                 </div>
                 <div className="p-6 md:p-14 bg-gradient-to-br from-gold-antique to-gold-metallic text-midnight rounded-sm shadow-[0_30px_60px_rgba(170,124,17,0.3)] space-y-3 overflow-hidden text-center">
                   <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-60">Expected Annual</div>
-                  <div className="text-lg md:text-4xl lg:text-5xl serif font-bold truncate">${results.totalOpportunity.expected.toLocaleString()}</div>
+                  <div className="text-lg md:text-4xl lg:text-5xl serif font-bold truncate">${Math.round(results.totalOpportunity.expected).toLocaleString()}</div>
                 </div>
                 <div className="p-4 md:p-10 bg-white/5 border border-white/5 rounded-sm space-y-3 overflow-hidden text-center">
                   <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] text-marble/30">Aggressive</div>
-                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${results.totalOpportunity.high.toLocaleString()}</div>
+                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${Math.round(results.totalOpportunity.high).toLocaleString()}</div>
                 </div>
               </div>
             </div>
@@ -464,8 +465,8 @@ export default function Report() {
                             <span>Capture Potential</span>
                           </div>
                           <div className="flex justify-between items-baseline">
-                            <span className="text-marble/40 text-xs tracking-widest">${qData.low.toLocaleString()} — ${qData.high.toLocaleString()}</span>
-                            <span className="text-3xl serif font-medium text-marble">${qData.expected.toLocaleString()}</span>
+                            <span className="text-marble/40 text-xs tracking-widest">${Math.round(qData.low).toLocaleString()} — ${Math.round(qData.high).toLocaleString()}</span>
+                            <span className="text-3xl serif font-medium text-marble">${Math.round(qData.expected).toLocaleString()}</span>
                           </div>
                         </div>
                       </>
@@ -610,15 +611,15 @@ export default function Report() {
         </main>
       )}
 
-      {/* Pulse glow animation for Fix My Flow tab */}
+      {/* Pulse glow animation for Redirect My Wealth tab */}
       <style>{`
         .fix-tab-glow {
-          box-shadow: 0 0 15px rgba(212, 175, 55, 0.3), 0 0 30px rgba(212, 175, 55, 0.1);
+          box-shadow: 0 0 20px rgba(201, 168, 76, 0.4), 0 0 40px rgba(201, 168, 76, 0.15);
           animation: fixGlow 2s ease-in-out infinite;
         }
         @keyframes fixGlow {
-          0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.3), 0 0 30px rgba(212, 175, 55, 0.1); }
-          50% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.6), 0 0 50px rgba(212, 175, 55, 0.3); }
+          0%, 100% { box-shadow: 0 0 20px rgba(201, 168, 76, 0.4), 0 0 40px rgba(201, 168, 76, 0.15); }
+          50% { box-shadow: 0 0 35px rgba(201, 168, 76, 0.7), 0 0 60px rgba(201, 168, 76, 0.35); }
         }
       `}</style>
     </div>

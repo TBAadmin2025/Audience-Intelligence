@@ -544,10 +544,10 @@ export default function App() {
                 <div className="pt-10 border-t border-white/5 space-y-6">
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Annual Redirection Potential</span>
-                    <span className="text-4xl md:text-5xl serif font-medium text-gold-gradient">${results.totalOpportunity.expected.toLocaleString()}</span>
+                    <span className="text-4xl md:text-5xl serif font-medium text-gold-gradient">${Math.round(results.totalOpportunity.expected).toLocaleString()}</span>
                   </div>
                   <div className="text-[10px] text-marble/20 italic tracking-widest">
-                    Modeled Range: ${results.totalOpportunity.low.toLocaleString()} — ${results.totalOpportunity.high.toLocaleString()}
+                    Modeled Range: ${Math.round(results.totalOpportunity.low).toLocaleString()} — ${Math.round(results.totalOpportunity.high).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -579,7 +579,7 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
               <div className="space-y-4">
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Modeled Federal Tax (2026)</div>
-                <div className="text-3xl md:text-4xl lg:text-5xl serif font-medium text-marble">${results.baselineFedTax.toLocaleString()}</div>
+                <div className="text-3xl md:text-4xl lg:text-5xl serif font-medium text-marble">${Math.round(results.baselineFedTax).toLocaleString()}</div>
                 <p className="text-[10px] text-marble/20 tracking-widest uppercase">Estimated Exposure</p>
               </div>
               <div className="space-y-4 border-x border-white/5 px-8">
@@ -667,8 +667,8 @@ export default function App() {
                         <span>Capture Potential</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-marble/40 text-xs tracking-widest">${results.quadrants[q.key].low.toLocaleString()} — ${results.quadrants[q.key].high.toLocaleString()}</span>
-                        <span className="text-3xl serif font-medium text-marble">${results.quadrants[q.key].expected.toLocaleString()}</span>
+                        <span className="text-marble/40 text-xs tracking-widest">${Math.round(results.quadrants[q.key].low).toLocaleString()} — ${Math.round(results.quadrants[q.key].high).toLocaleString()}</span>
+                        <span className="text-3xl serif font-medium text-marble">${Math.round(results.quadrants[q.key].expected).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -688,15 +688,15 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
                 <div className="p-10 bg-white/5 border border-white/5 rounded-sm space-y-4">
                   <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Conservative</div>
-                  <div className="text-2xl md:text-3xl lg:text-4xl serif font-medium text-marble/60">${results.totalOpportunity.low.toLocaleString()}</div>
+                  <div className="text-2xl md:text-3xl lg:text-4xl serif font-medium text-marble/60">${Math.round(results.totalOpportunity.low).toLocaleString()}</div>
                 </div>
                 <div className="p-14 bg-gradient-to-br from-gold-antique to-gold-metallic text-midnight rounded-sm transform scale-110 shadow-[0_30px_60px_rgba(170,124,17,0.3)] space-y-4">
                   <div className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-60">Expected Annual</div>
-                  <div className="text-4xl md:text-5xl lg:text-6xl serif font-bold tracking-tight">${results.totalOpportunity.expected.toLocaleString()}</div>
+                  <div className="text-4xl md:text-5xl lg:text-6xl serif font-bold tracking-tight">${Math.round(results.totalOpportunity.expected).toLocaleString()}</div>
                 </div>
                 <div className="p-10 bg-white/5 border border-white/5 rounded-sm space-y-4">
                   <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Aggressive</div>
-                  <div className="text-2xl md:text-3xl lg:text-4xl serif font-medium text-marble/60">${results.totalOpportunity.high.toLocaleString()}</div>
+                  <div className="text-2xl md:text-3xl lg:text-4xl serif font-medium text-marble/60">${Math.round(results.totalOpportunity.high).toLocaleString()}</div>
                 </div>
               </div>
             </div>

@@ -35,13 +35,14 @@ REQUIRED INSIGHT STYLE:
 - Sound analytical, not assumptive.
 
 Tone Requirements: Clear, calm, intelligent, professional, human, advisory.
-Avoid: Hype, marketing tone, slang, fear tactics, buzzword stacking.`;
+Avoid: Hype, marketing tone, slang, fear tactics, buzzword stacking.
+When referencing any dollar amounts in your response, always use whole numbers rounded to the nearest dollar. Never include cents or decimal places in any financial figures.`;
 
     const prompt = `Interpret the diagnostic results provided for a client with the following profile:
 - Income: ${profile.incomeRange}
 - Taxes Paid Last Year: ${profile.taxesPaidRange}
 - Wealth Redirection Score: ${results.score}/100
-- Estimated Annual Wealth Leakage: $${results.totalOpportunity.expected.toLocaleString()}
+- Estimated Annual Wealth Leakage: $${Math.round(results.totalOpportunity.expected).toLocaleString()}
 - Tax Drag Ratio: ${Math.round(results.taxDragRatio * 100)}%
 - Effective Tax Rate: ${Math.round(results.effectiveRate * 100)}%
 - Confidence Level: ${results.confidence}
