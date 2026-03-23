@@ -1,0 +1,13 @@
+{
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/get-session", "destination": "/api/get-session" },
+    { "source": "/api/save-session", "destination": "/api/save-session" },
+    { "source": "/api/update-session", "destination": "/api/update-session" },
+    { "source": "/api/ghl-start", "destination": "/api/ghl-start" },
+    { "source": "/api/ghl-complete", "destination": "/api/ghl-complete" },
+    { "source": "/api/ai-commentary", "destination": "/api/ai-commentary" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

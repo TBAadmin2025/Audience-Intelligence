@@ -50,9 +50,10 @@ const QuestionCard = ({ question, options, onSelect, value }: any) => {
   );
 };
 
-const ProcessingScreen = ({ onComplete }: { onComplete: () => void }) => {
+const ProcessingScreen = ({ apiReady, onComplete }: { apiReady: boolean; onComplete: () => void }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [completing, setCompleting] = useState(false);
 
   const steps = [
     { label: "Initializing Redirection", sub: "Establishing secure 256-bit connection..." },
@@ -62,27 +63,39 @@ const ProcessingScreen = ({ onComplete }: { onComplete: () => void }) => {
     { label: "Finalizing Private Report", sub: "Synthesizing strategic interpretation..." }
   ];
 
+  // Animate progress to 90% over 10 seconds, then hold
   useEffect(() => {
-    const totalDuration = 30000; // 30 seconds
+    if (completing) return;
+    const totalDuration = 10000;
+    const maxProgress = 90;
     const interval = 100;
-    const increment = (interval / totalDuration) * 100;
+    const increment = (interval / totalDuration) * maxProgress;
 
     const timer = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 100) {
+        if (prev >= maxProgress) {
           clearInterval(timer);
-          onComplete();
-          return 100;
+          return maxProgress;
         }
-        return prev + increment;
+        return Math.min(prev + increment, maxProgress);
       });
     }, interval);
 
     return () => clearInterval(timer);
-  }, [onComplete]);
+  }, [completing]);
+
+  // When APIs finish, jump to 100% and redirect
+  useEffect(() => {
+    if (apiReady && !completing) {
+      setCompleting(true);
+      setProgress(100);
+      const timeout = setTimeout(() => onComplete(), 800);
+      return () => clearTimeout(timeout);
+    }
+  }, [apiReady, completing, onComplete]);
 
   useEffect(() => {
-    const stepDuration = 30000 / steps.length;
+    const stepDuration = 10000 / steps.length;
     const stepTimer = setInterval(() => {
       setCurrentStep(prev => (prev < steps.length - 1 ? prev + 1 : prev));
     }, stepDuration);
@@ -162,7 +175,7 @@ const ScoreGauge = ({ score, size = 200, strokeWidth = 12, color = "#D4AF37" }: 
 // ==========================================
 // MAIN APP COMPONENT (PRESERVING YOUR LOGIC)
 // ==========================================
-type Step = "intro" | "questions" | "contact" | "processing" | "results";
+type Step = "intro" | "contact" | "questions" | "processing" | "results";
 
 export default function App() {
   const [step, setStep] = useState<Step>("intro");
@@ -172,6 +185,8 @@ export default function App() {
   const [results, setResults] = useState<any>(null);
   const [commentary, setCommentary] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [apiReady, setApiReady] = useState(false);
 
   // YOUR ORIGINAL QUESTIONS
   const questions = [
@@ -203,13 +218,43 @@ export default function App() {
     // Added a slight delay for UI polish before advancing
     setTimeout(() => {
       if (currentQuestion < activeQuestions.length - 1) setCurrentQuestion(prev => prev + 1);
-      else setStep("contact");
+      else generateResults();
     }, 400);
   };
 
-  // YOUR ORIGINAL API CALLS
+  // Create Supabase session + fire GHL start on contact form submit
+  const handleContactSubmit = async () => {
+    setLoading(true);
+    try {
+      // Create session in Supabase
+      const saveRes = await fetch("/api/save-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact }),
+      });
+      const saveData = await saveRes.json();
+      if (saveData.sessionId) setSessionId(saveData.sessionId);
+
+      // Fire-and-forget GHL start
+      fetch("/api/ghl-start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact }),
+      }).catch(() => {});
+    } catch (e) {
+      console.error("Session creation error:", e);
+    } finally {
+      setLoading(false);
+      setStep("questions");
+    }
+  };
+
+  // Run scoring, AI, update Supabase, fire GHL complete, redirect to report
   const generateResults = async () => {
     setLoading(true);
+    setApiReady(false);
+    setStep("processing");
+
     const diagnosticInput: DiagnosticAnswers = {
       ...answers,
       ownsBusiness: answers.ownsBusiness === "Yes",
@@ -228,21 +273,53 @@ export default function App() {
     const res = runDiagnostic(diagnosticInput);
     setResults(res);
 
+    let aiCommentary = "";
     try {
-      await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: diagnosticInput, contact, results: res })
-      });
       const aiRes = await fetch("/api/ai-commentary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ results: res, profile: answers })
       });
       const aiData = await aiRes.json();
-      setCommentary(aiData.commentary);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); setStep("processing"); }
+      aiCommentary = aiData.commentary || "";
+      setCommentary(aiCommentary);
+    } catch (e) { console.error("AI commentary error:", e); }
+
+    // Build raw answers for storage
+    const rawAnswers = questions
+      .filter(q => !q.condition || q.condition(answers))
+      .map(q => ({ question: q.q, answer: answers[q.id as keyof typeof answers] ?? null }));
+
+    // Update Supabase session with results
+    if (sessionId) {
+      try {
+        await fetch("/api/update-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            results: res,
+            rawAnswers,
+            commentary: aiCommentary,
+          }),
+        });
+      } catch (e) { console.error("Session update error:", e); }
+
+      // Fire-and-forget GHL complete
+      fetch("/api/ghl-complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact,
+          results: res,
+          sessionId,
+          commentary: aiCommentary,
+        }),
+      }).catch(() => {});
+    }
+
+    setLoading(false);
+    setApiReady(true);
   };
 
   // --- RENDERS ---
@@ -262,15 +339,15 @@ export default function App() {
           <div className="space-y-8 artisan-card p-12 md:p-20 border-none shadow-none bg-transparent">
             <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#D4AF37] opacity-80 mb-4">Strategic Wealth Diagnostic</p>
             <h2 className="font-serif text-5xl md:text-7xl leading-[1.1] font-normal text-[#EBE6DF]">
-              Instead of paying the IRS, <br/><span className="italic text-gold-gradient">pay you.</span>
+              Wealth Redirection <span className="italic text-gold-gradient">Diagnostic</span>
             </h2>
             <p className="text-lg md:text-xl text-[#EBE6DF]/70 font-light max-w-2xl mx-auto leading-relaxed pt-6">
-              We restructure how your income hits your tax return—so more of what you’re currently sending to the IRS is redirected into vehicles you own.
+              This diagnostic will show you how your income is currently taxed— and where opportunities may exist to retain more of that capital and redirect it into assets you own.
             </p>
           </div>
 
           <div className="pt-4">
-            <button onClick={() => setStep("questions")} className="group px-14 py-6 btn-primary text-[11px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 mx-auto rounded-sm">
+            <button onClick={() => setStep("contact")} className="group px-14 py-6 btn-primary text-[11px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 mx-auto rounded-sm">
               Begin Diagnostic <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-500" />
             </button>
           </div>
@@ -280,49 +357,6 @@ export default function App() {
              <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-[#EBE6DF]"><ShieldCheck className="w-3 h-3 text-[#D4AF37]" /> Private Encryption</div>
           </div>
         </motion.div>
-      </div>
-    );
-  }
-
-  if (step === "questions") {
-    return (
-      <div className="min-h-screen font-sans vlari-bg flex flex-col relative overflow-hidden">
-        <ProgressBar current={currentQuestion + 1} total={activeQuestions.length} />
-        
-        <header className="p-8 md:p-12 flex justify-between items-center relative z-10 border-b border-white/5">
-          <div className="flex items-center">
-            <span className="font-serif font-medium text-2xl text-gold-gradient tracking-widest uppercase">Vlari</span>
-          </div>
-          <div className="flex items-center gap-3 text-[#EBE6DF]/40 text-[9px] font-bold uppercase tracking-[0.4em]">
-            <Activity className="w-3 h-3 text-[#D4AF37]/50" />
-            Section 0{Math.floor(currentQuestion / 3) + 1}
-          </div>
-        </header>
-
-        <div className="flex-1 flex flex-col justify-center max-w-5xl mx-auto w-full py-12 px-6 relative z-10">
-          <AnimatePresence mode="wait">
-            <motion.div key={currentQuestion} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
-              <QuestionCard 
-                question={activeQuestions[currentQuestion].q}
-                options={activeQuestions[currentQuestion].options}
-                onSelect={handleAnswer}
-                value={answers[activeQuestions[currentQuestion].id as keyof DiagnosticAnswers]}
-              />
-              
-              <div className="mt-24 flex items-center justify-between max-w-4xl mx-auto border-t border-white/5 pt-8">
-                <button 
-                  onClick={() => currentQuestion > 0 ? setCurrentQuestion(prev => prev - 1) : setStep("intro")} 
-                  className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.4em] text-[#EBE6DF]/30 hover:text-[#D4AF37] transition-all group"
-                >
-                  <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
-                </button>
-                <div className="text-[9px] font-bold uppercase tracking-[0.5em] text-[#EBE6DF]/10 hidden md:block">
-                  Diagnostic Module v3.0
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
       </div>
     );
   }
@@ -337,11 +371,11 @@ export default function App() {
             </div>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-[#EBE6DF]">Secure Your <span className="italic text-gold-gradient">Analysis</span></h2>
             <p className="text-base text-[#EBE6DF]/60 font-light leading-relaxed px-4">
-              Your structural footprint has been logged. Provide your details below to generate your private wealth redirection report.
+              Provide your details below to begin your private wealth redirection diagnostic.
             </p>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); generateResults(); }} className="space-y-8">
+          <form onSubmit={(e) => { e.preventDefault(); handleContactSubmit(); }} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#D4AF37]/80 ml-1">First Name</label>
@@ -370,7 +404,7 @@ export default function App() {
             </div>
 
             <button type="submit" disabled={!contact.email || !contact.firstName || loading} className="w-full py-5 btn-primary text-[11px] font-bold uppercase tracking-[0.3em] rounded-sm mt-8">
-              {loading ? "Processing..." : "Generate Private Report"}
+              {loading ? "Securing Session..." : "Begin Diagnostic"}
             </button>
           </form>
 
@@ -382,7 +416,50 @@ export default function App() {
     );
   }
 
-  if (step === "processing") return <ProcessingScreen onComplete={() => setStep("results")} />;
+  if (step === "questions") {
+    return (
+      <div className="min-h-screen font-sans vlari-bg flex flex-col relative overflow-hidden">
+        <ProgressBar current={currentQuestion + 1} total={activeQuestions.length} />
+
+        <header className="p-8 md:p-12 flex justify-between items-center relative z-10 border-b border-white/5">
+          <div className="flex items-center">
+            <span className="font-serif font-medium text-2xl text-gold-gradient tracking-widest uppercase">Vlari</span>
+          </div>
+          <div className="flex items-center gap-3 text-[#EBE6DF]/40 text-[9px] font-bold uppercase tracking-[0.4em]">
+            <Activity className="w-3 h-3 text-[#D4AF37]/50" />
+            Section 0{Math.floor(currentQuestion / 3) + 1}
+          </div>
+        </header>
+
+        <div className="flex-1 flex flex-col justify-center max-w-5xl mx-auto w-full py-12 px-6 relative z-10">
+          <AnimatePresence mode="wait">
+            <motion.div key={currentQuestion} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
+              <QuestionCard
+                question={activeQuestions[currentQuestion].q}
+                options={activeQuestions[currentQuestion].options}
+                onSelect={handleAnswer}
+                value={answers[activeQuestions[currentQuestion].id as keyof DiagnosticAnswers]}
+              />
+
+              <div className="mt-24 flex items-center justify-between max-w-4xl mx-auto border-t border-white/5 pt-8">
+                <button
+                  onClick={() => currentQuestion > 0 ? setCurrentQuestion(prev => prev - 1) : setStep("contact")}
+                  className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.4em] text-[#EBE6DF]/30 hover:text-[#D4AF37] transition-all group"
+                >
+                  <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
+                </button>
+                <div className="text-[9px] font-bold uppercase tracking-[0.5em] text-[#EBE6DF]/10 hidden md:block">
+                  Diagnostic Module v3.0
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "processing") return <ProcessingScreen apiReady={apiReady} onComplete={() => sessionId ? window.location.href = `/report/${sessionId}` : setStep("results")} />;
 
   if (step === "results" && results) {
     const quadrants = [

@@ -137,8 +137,14 @@ export function runDiagnostic(answers: DiagnosticAnswers) {
   q1Low = Math.min(q1Low, q1Cap);
   q1Expected = Math.min(q1Expected, q1Cap);
   q1High = Math.min(q1High, q1Cap);
-  let q1Score = Math.round(100 * (1 - Math.min(q1Expected / q1Cap, 1)));
+  let q1Score: number | null = Math.round(100 * (1 - Math.min(q1Expected / q1Cap, 1)));
   q1Score = Math.max(0, q1Score - entityPenalty);
+
+  if (!answers.subjectToSE ||
+    (answers.businessTaxType !== "Sole proprietor / Single-member LLC" &&
+     answers.businessTaxType !== "Partnership / Multi-member LLC")) {
+    q1Score = null;
+  }
 
   // Quadrant 2: Deduction System Leak
   let gapPct = 0.04; // Base 4%
@@ -173,7 +179,11 @@ export function runDiagnostic(answers: DiagnosticAnswers) {
   q3Low = Math.min(q3Low, q3Cap);
   q3Expected = Math.min(q3Expected, q3Cap);
   q3High = Math.min(q3High, q3Cap);
-  const q3Score = Math.round(100 * (1 - Math.min(q3Expected / q3Cap, 1)));
+  let q3Score: number | null = Math.round(100 * (1 - Math.min(q3Expected / q3Cap, 1)));
+
+  if (!answers.ownsAssets) {
+    q3Score = null;
+  }
 
   // Quadrant 4: Wealth Vehicle Leak
   let vGapPct = 0.045; // Base 4.5%
