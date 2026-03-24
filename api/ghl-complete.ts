@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { diagnosticConfig } from "../src/client/config";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -13,6 +14,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = process.env.GHL_API_KEY;
   const locationId = process.env.GHL_LOCATION_ID;
   if (!apiKey || !locationId) return;
+
+  const { fieldKeys, tags } = diagnosticConfig.ghl;
 
   try {
     // Find the contact by email
@@ -42,13 +45,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tags: ["diagnostic-completed"],
+          tags: [tags.completed],
           customFields: [
-            { key: "diagnostic_overall_score", field_value: String(results.score) },
-            { key: "diagnostic_redirection_potential", field_value: `$${Math.round(results.totalOpportunity.low).toLocaleString()} - $${Math.round(results.totalOpportunity.high).toLocaleString()}` },
-            { key: "diagnostic_report_url", field_value: reportUrl },
-            { key: "diagnostic_commentary", field_value: commentary || "" },
-            { key: "diagnostic_completed_date", field_value: new Date().toISOString() },
+            { key: fieldKeys.overallScore, field_value: String(results.score) },
+            { key: fieldKeys.financialImpact, field_value: `$${Math.round(results.financialImpact.low).toLocaleString()} - $${Math.round(results.financialImpact.high).toLocaleString()}` },
+            { key: fieldKeys.reportUrl, field_value: reportUrl },
+            { key: fieldKeys.commentary, field_value: commentary || "" },
+            { key: fieldKeys.completedDate, field_value: new Date().toISOString() },
           ],
         }),
       }

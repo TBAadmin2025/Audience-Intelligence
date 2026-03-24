@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { ShieldCheck, Activity, TriangleAlert, TrendingUp, Sparkles } from "lucide-react";
 import { WealthRedirectionContent } from "../components/WealthRedirectionContent";
+import { diagnosticConfig } from "../client/config";
 
-const CALENDAR_URL = "https://links.quietwealthengine.com/widget/bookings/terry-lamb-personal-calendar-fpt4gikvv";
-
-const ScoreGauge = ({ score, size = 200, strokeWidth = 12, color = "#D4AF37" }: any) => {
+const ScoreGauge = ({ score, size = 200, strokeWidth = 12, color = "var(--color-accent)" }: any) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDashoffset = circumference - (score / 100) * circumference;
@@ -37,17 +36,17 @@ const CTASection = ({ onFixMyFlow }: { onFixMyFlow: () => void }) => (
           Strategic Next Step
         </div>
         <h2 className="serif text-6xl md:text-8xl font-medium text-marble leading-tight">
-          Redirect Your Wealth. <br /> <span className="italic text-gold-gradient">Secure Your Future.</span>
+          {diagnosticConfig.copy.ctaHeadline} <br /> <span className="italic text-gold-gradient">Secure Your Future.</span>
         </h2>
         <p className="text-2xl text-marble/50 font-light max-w-3xl mx-auto leading-relaxed">
-          Your diagnostic results reveal significant opportunities. Now let's build a tactical strategy to capture them. Book a complimentary 30-minute strategy session.
+          {diagnosticConfig.copy.ctaSubheadline}
         </p>
       </div>
       <button
         onClick={onFixMyFlow}
         className="bg-gradient-to-r from-gold-antique to-gold-metallic text-midnight px-24 py-10 rounded-sm text-2xl font-bold uppercase tracking-[0.3em] transition-all duration-700 shadow-[0_30px_60px_rgba(170,124,17,0.3)] hover:scale-105 active:scale-95"
       >
-        Improve My Structure
+        {diagnosticConfig.copy.ctaButtonText}
       </button>
     </div>
   </section>
@@ -124,12 +123,16 @@ export default function Report() {
     );
   }
 
-  const quadrants = [
-    { id: 1, title: "Income Flow Structure", key: "structure", color: "#D4AF37", desc: "Measures inefficiencies related to business entity selection, compensation design, and SE tax exposure." },
-    { id: 2, title: "Deduction System Leak", key: "deduction", color: "#AA7C11", desc: "Measures likelihood of missed allowable deductions and reactive tax behavior." },
-    { id: 3, title: "Asset & Depreciation Leak", key: "asset", color: "#D4AF37", desc: "Measures inefficiencies tied to asset purchase timing and depreciation strategy." },
-    { id: 4, title: "Wealth Vehicle Leak", key: "wealthVehicle", color: "#AA7C11", desc: "Measures potential underutilization of tax-advantaged wealth vehicles and deferral mechanisms." },
-  ];
+  // Support both old (totalOpportunity) and new (financialImpact) result shapes
+  const financialImpact = results.financialImpact || results.totalOpportunity;
+
+  const quadrants = diagnosticConfig.quadrants.map((q, i) => ({
+    id: i + 1,
+    title: q.name,
+    key: q.key,
+    color: i % 2 === 0 ? diagnosticConfig.brand.accentColor : diagnosticConfig.brand.accentSecondary,
+    desc: q.description,
+  }));
 
   const getOpportunityBand = (val: number) => {
     if (val < 50000) return "Controlled";
@@ -151,10 +154,16 @@ export default function Report() {
     return "High Pressure";
   };
 
+  // Support both old and new metric locations
+  const taxDragRatio = results.metrics?.taxDragRatio ?? results.taxDragRatio;
+  const effectiveRate = results.metrics?.effectiveRate ?? results.effectiveRate;
+  const baselineFedTax = results.metrics?.baselineFedTax ?? results.baselineFedTax;
+  const entitySignal = results.aiFlags?.entitySignal ?? results.entitySignal;
+
   const tabs: { id: Tab; label: string }[] = [
-    { id: "results", label: "Your Summary" },
-    { id: "quadrants", label: "Breakdown" },
-    { id: "fix", label: "Redirect My Wealth" },
+    { id: "results", label: diagnosticConfig.copy.tabs.summary },
+    { id: "quadrants", label: diagnosticConfig.copy.tabs.breakdown },
+    { id: "fix", label: diagnosticConfig.copy.tabs.action },
   ];
 
   return (
@@ -164,9 +173,9 @@ export default function Report() {
         <div className="max-w-[1400px] mx-auto px-10 py-6 flex justify-between items-center w-full">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gold-metallic rounded-sm flex items-center justify-center mr-4 shadow-2xl">
-              <span className="text-midnight font-serif font-bold text-lg">V</span>
+              <span className="text-midnight font-serif font-bold text-lg">{diagnosticConfig.brand.appName[0]}</span>
             </div>
-            <span className="serif font-medium text-xl text-marble tracking-[0.2em] uppercase">Vlari</span>
+            <span className="serif font-medium text-xl text-marble tracking-[0.2em] uppercase">{diagnosticConfig.brand.appName}</span>
           </div>
           <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-marble/30">
             <ShieldCheck className="w-4 h-4 text-gold-metallic/40" />
@@ -221,7 +230,7 @@ export default function Report() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="artisan-card p-8 space-y-4">
                   <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Opportunity Band</div>
-                  <div className="text-3xl serif font-medium text-marble">{getOpportunityBand(results.totalOpportunity.expected)}</div>
+                  <div className="text-3xl serif font-medium text-marble">{getOpportunityBand(financialImpact.expected)}</div>
                 </div>
                 <div className="artisan-card p-8 space-y-4">
                   <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Confidence Level</div>
@@ -243,10 +252,10 @@ export default function Report() {
                 <div className="pt-10 border-t border-white/5 space-y-6">
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Annual Redirection Potential</span>
-                    <span className="text-4xl md:text-5xl serif font-medium text-gold-gradient">${Math.round(results.totalOpportunity.expected).toLocaleString()}</span>
+                    <span className="text-4xl md:text-5xl serif font-medium text-gold-gradient">${Math.round(financialImpact.expected).toLocaleString()}</span>
                   </div>
                   <div className="text-[10px] text-marble/20 italic tracking-widest">
-                    Modeled Range: ${Math.round(results.totalOpportunity.low).toLocaleString()} — ${Math.round(results.totalOpportunity.high).toLocaleString()}
+                    Modeled Range: ${Math.round(financialImpact.low).toLocaleString()} — ${Math.round(financialImpact.high).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -258,17 +267,17 @@ export default function Report() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
               <div className="space-y-4 overflow-hidden">
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Modeled Federal Tax (2026)</div>
-                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble truncate">${Math.round(results.baselineFedTax).toLocaleString()}</div>
+                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble truncate">${Math.round(baselineFedTax).toLocaleString()}</div>
                 <p className="text-[10px] text-marble/20 tracking-widest uppercase">Estimated Exposure</p>
               </div>
               <div className="space-y-4 border-x border-white/5 px-8 overflow-hidden">
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Tax Drag Ratio</div>
-                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble">{Math.round(results.taxDragRatio * 100)}%</div>
-                <p className="text-[10px] text-marble/20 tracking-widest uppercase">{getTaxDragInterpretation(results.taxDragRatio)}</p>
+                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble">{Math.round(taxDragRatio * 100)}%</div>
+                <p className="text-[10px] text-marble/20 tracking-widest uppercase">{getTaxDragInterpretation(taxDragRatio)}</p>
               </div>
               <div className="space-y-4 overflow-hidden">
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Effective Tax Rate</div>
-                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble">{Math.round(results.effectiveRate * 100)}%</div>
+                <div className="text-sm sm:text-2xl md:text-3xl serif font-medium text-marble">{Math.round(effectiveRate * 100)}%</div>
                 <p className="text-[10px] text-marble/20 tracking-widest uppercase">Blended Exposure</p>
               </div>
             </div>
@@ -295,7 +304,7 @@ export default function Report() {
           )}
 
           {/* Entity Signal */}
-          {results.entitySignal && (
+          {entitySignal && (
             <section className="artisan-card p-12 border-l-4 border-gold-metallic">
               <div className="flex items-start gap-8">
                 <div className="p-4 bg-gold-metallic/10 rounded-sm">
@@ -305,13 +314,13 @@ export default function Report() {
                   <h3 className="serif text-3xl font-medium text-marble">Entity Redirection Signal</h3>
                   <div className="flex items-center gap-3">
                     <span className={`text-[10px] font-bold uppercase tracking-[0.3em] px-3 py-1 rounded-sm ${
-                      results.entitySignal.severity === "High" ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-gold-metallic/20 text-gold-metallic border border-gold-metallic/30"
+                      entitySignal.severity === "High" ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-gold-metallic/20 text-gold-metallic border border-gold-metallic/30"
                     }`}>
-                      {results.entitySignal.severity} Severity Mismatch
+                      {entitySignal.severity} Severity Mismatch
                     </span>
                   </div>
                   <p className="text-marble/60 text-lg leading-relaxed font-light">
-                    {results.entitySignal.message}
+                    {entitySignal.message}
                   </p>
                 </div>
               </div>
@@ -329,15 +338,15 @@ export default function Report() {
               <div className="grid grid-cols-3 gap-4 md:gap-12 items-center">
                 <div className="p-4 md:p-10 bg-white/5 border border-white/5 rounded-sm space-y-3 overflow-hidden text-center">
                   <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] text-marble/30">Conservative</div>
-                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${Math.round(results.totalOpportunity.low).toLocaleString()}</div>
+                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${Math.round(financialImpact.low).toLocaleString()}</div>
                 </div>
                 <div className="p-6 md:p-14 bg-gradient-to-br from-gold-antique to-gold-metallic text-midnight rounded-sm shadow-[0_30px_60px_rgba(170,124,17,0.3)] space-y-3 overflow-hidden text-center">
                   <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-60">Expected Annual</div>
-                  <div className="text-lg md:text-4xl lg:text-5xl serif font-bold truncate">${Math.round(results.totalOpportunity.expected).toLocaleString()}</div>
+                  <div className="text-lg md:text-4xl lg:text-5xl serif font-bold truncate">${Math.round(financialImpact.expected).toLocaleString()}</div>
                 </div>
                 <div className="p-4 md:p-10 bg-white/5 border border-white/5 rounded-sm space-y-3 overflow-hidden text-center">
                   <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] text-marble/30">Aggressive</div>
-                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${Math.round(results.totalOpportunity.high).toLocaleString()}</div>
+                  <div className="text-sm md:text-2xl lg:text-3xl serif font-medium text-marble/60 truncate">${Math.round(financialImpact.high).toLocaleString()}</div>
                 </div>
               </div>
             </div>
@@ -394,6 +403,9 @@ export default function Report() {
               {quadrants.map((q) => {
                 const qData = results.quadrants[q.key];
                 const isNotEvaluated = qData.score === null || qData.status === "Not Evaluated";
+                // Support both old (low/expected/high) and new (opportunity.low/expected/high) shapes
+                const opp = qData.opportunity || qData;
+                const findings = Array.isArray(qData.findings) ? qData.findings[0] : qData.findings;
                 return (
                 <div key={q.id} className="artisan-card p-12 flex flex-col hover:shadow-[0_0_60px_rgba(170,124,17,0.1)] transition-all duration-700 group">
                   <div className="flex items-start justify-between mb-10">
@@ -450,7 +462,7 @@ export default function Report() {
                             <Activity className="w-3 h-3" /> Diagnostic Commentary
                           </h4>
                           <p className="text-marble/70 text-base leading-relaxed font-light italic">
-                            {qData.findings}
+                            {findings}
                           </p>
                         </div>
                         <div className="pt-8 border-t border-white/5">
@@ -459,8 +471,8 @@ export default function Report() {
                             <span>Capture Potential</span>
                           </div>
                           <div className="flex justify-between items-baseline">
-                            <span className="text-marble/40 text-xs tracking-widest">${Math.round(qData.low).toLocaleString()} — ${Math.round(qData.high).toLocaleString()}</span>
-                            <span className="text-3xl serif font-medium text-marble">${Math.round(qData.expected).toLocaleString()}</span>
+                            <span className="text-marble/40 text-xs tracking-widest">${Math.round(opp.low).toLocaleString()} — ${Math.round(opp.high).toLocaleString()}</span>
+                            <span className="text-3xl serif font-medium text-marble">${Math.round(opp.expected).toLocaleString()}</span>
                           </div>
                         </div>
                       </>

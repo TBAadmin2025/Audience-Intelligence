@@ -3,8 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="https://assets.cdn.filesafe.space/5acTuTfeFkOQRwxAXWLx/media/69c164995d249694869a72d9.png">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="https://assets.cdn.filesafe.space/5acTuTfeFkOQRwxAXWLx/media/69c164995d249694869a72d9.png">
     <title>Wealth Redirection Diagnostic</title>
+    <script type="module">
+      import { diagnosticConfig } from '/src/client/config.ts';
+      document.title = diagnosticConfig.brand.appName + ' — ' + diagnosticConfig.copy.introHeadline;
+      document.getElementById('dynamic-favicon').href = diagnosticConfig.brand.faviconUrl;
+    </script>
   </head>
   <body>
     <div id="root"></div>

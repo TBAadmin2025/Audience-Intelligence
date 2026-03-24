@@ -1,5 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import { WealthRedirectionContent } from "../components/WealthRedirectionContent";
+import { diagnosticConfig } from "../client/config";
 
 export default function Schedule() {
   return (
@@ -9,9 +10,9 @@ export default function Schedule() {
         <div className="max-w-[1400px] mx-auto px-10 py-6 flex justify-between items-center w-full">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gold-metallic rounded-sm flex items-center justify-center mr-4 shadow-2xl">
-              <span className="text-midnight font-serif font-bold text-lg">V</span>
+              <span className="text-midnight font-serif font-bold text-lg">{diagnosticConfig.brand.appName[0]}</span>
             </div>
-            <span className="serif font-medium text-xl text-marble tracking-[0.2em] uppercase">Vlari</span>
+            <span className="serif font-medium text-xl text-marble tracking-[0.2em] uppercase">{diagnosticConfig.brand.appName}</span>
           </div>
           <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-marble/30">
             <ShieldCheck className="w-4 h-4 text-gold-metallic/40" />

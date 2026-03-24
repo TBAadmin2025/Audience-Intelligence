@@ -6,6 +6,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  if (!process.env.TENANT_ID) {
+    console.error("save-session: Missing TENANT_ID");
+    return res.status(500).json({ error: "TENANT_ID environment variable is not configured" });
+  }
+
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
     console.error("save-session: Missing SUPABASE_URL or SUPABASE_ANON_KEY");
     return res.status(500).json({ error: "Supabase not configured" });
@@ -18,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { data, error } = await supabase
     .from("diagnostic_sessions")
     .insert({
-      tenant_id: "1b51292d-8260-4d5a-b292-4cbc970b5453",
+      tenant_id: process.env.TENANT_ID,
       first_name: contact.firstName,
       last_name: contact.lastName,
       email: contact.email,
