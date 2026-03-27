@@ -1,103 +1,172 @@
 export const diagnosticConfig = {
   brand: {
-    appName: "Vlari",
-    logoUrl: "https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/6b2e7cf1-13d3-4f90-a083-47644dbc2c4e/1771943769366_Vlari_Motif_20260224_0933.png",
-    faviconUrl: "https://assets.cdn.filesafe.space/5acTuTfeFkOQRwxAXWLx/media/69c164995d249694869a72d9.png",
-    primaryColor: "#0A111F",
-    accentColor: "#D4AF37",
-    accentSecondary: "#AA7C11",
-    backgroundColor: "#0A111F",
-    surfaceColor: "#161618",
-    textPrimary: "#EBE6DF",
-    textMuted: "rgba(235, 230, 223, 0.5)",
+    appName: "DEANAR",
+    logoUrl: "",
+    faviconUrl: "https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/24605d59-6de7-48d2-b31c-44af447f6598/1771939635798_DEANAR_Motif_01_structural_logic.png",
+    primaryColor: "#24201E",
+    accentColor: "#B89F82",
+    accentSecondary: "#6E1618",
+    backgroundColor: "#F0EDE6",
+    surfaceColor: "#FFFFFF",
+    textPrimary: "#24201E",
+    textMuted: "rgba(36, 32, 30, 0.6)",
     headingFont: '"Cormorant Garamond", serif',
-    bodyFont: '"Inter", ui-sans-serif, system-ui, sans-serif',
+    bodyFont: '"Montserrat", sans-serif',
     vibe: "luxury" as const,
+    colors: {
+      paper: "#F0EDE6",
+      greige: "#D6CEC4",
+      camel: "#B89F82",
+      crimson: "#6E1618",
+      oxblood: "#3D0C0D",
+      graphite: "#24201E",
+    },
+    motifs: {
+      structuralLogic: "https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/24605d59-6de7-48d2-b31c-44af447f6598/1771939635798_DEANAR_Motif_01_structural_logic.png",
+      executivePolish: "https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/24605d59-6de7-48d2-b31c-44af447f6598/1771939636568_DEANAR_Motif_02_executive_polish.png",
+      abstractSignals: "https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/24605d59-6de7-48d2-b31c-44af447f6598/1771939637282_DEANAR_Motif_03_abstract_signals.png",
+      theBigBet: "https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/24605d59-6de7-48d2-b31c-44af447f6598/1771939638605_DEANAR_Motif_05_the_big_bet.png",
+      intersections: "https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/24605d59-6de7-48d2-b31c-44af447f6598/1771939639236_DEANAR_Motif_06_intersections.png",
+    },
   },
 
   copy: {
-    introHeadline: "Wealth Redirection Diagnostic",
-    introSubheadline: "This diagnostic will show you how your income is currently taxed— and where opportunities may exist to retain more of that capital and redirect it into assets you own.",
+    diagnosticName: "Audience Intelligence Diagnostic\u2122",
+    scoreName: "Audience Intelligence Score\u2122",
+    derivedMetric: "At-Risk Investment Value\u2122",
+    introHeadline: "Audience Intelligence Diagnostic",
+    introSubheadline: "Before you commit to your next move, find out whether your decision is backed by real audience intelligence \u2014 or built on assumption.",
     tabs: {
-      summary: "Your Summary",
-      breakdown: "Breakdown",
-      action: "Redirect My Wealth",
+      summary: "Your Readout",
+      breakdown: "Dimension Breakdown",
+      action: "Fix My Audience Intelligence",
     },
-    ctaButtonText: "Improve My Structure",
-    ctaHeadline: "Redirect Your Wealth.",
-    ctaSubheadline: "Your diagnostic results reveal significant opportunities. Now let's build a tactical strategy to capture them. Book a complimentary 30-minute strategy session.",
+    ctaButtonText: "Fix My Audience Intelligence",
+    ctaHeadline: "Close the Gap.",
+    ctaSubheadline: "Your diagnostic results reveal gaps in audience intelligence that could impact this decision. Get clear on what your audience is actually signaling before you move forward.",
+  },
+
+  investmentOptions: [
+    { label: "Less than $10,000", value: "Under $10K", midpoint: 7500 },
+    { label: "$10,000\u2013$50,000", value: "$10K\u2013$50K", midpoint: 30000 },
+    { label: "$50,000\u2013$150,000", value: "$50K\u2013$150K", midpoint: 100000 },
+    { label: "$150,000\u2013$500,000", value: "$150K\u2013$500K", midpoint: 325000 },
+    { label: "$500,000+", value: "$500K+", midpoint: 500000 },
+  ],
+
+  processingSteps: [
+    { heading: "Mapping Decision Landscape", sub: "Analyzing your strategic context\u2026" },
+    { heading: "Evaluating Audience Signals", sub: "Scanning behavioral evidence patterns\u2026" },
+    { heading: "Calculating Intelligence Gaps", sub: "Identifying assumption vs. validated insight\u2026" },
+    { heading: "Modeling Investment Exposure", sub: "Estimating at-risk value against decision type\u2026" },
+    { heading: "Generating Your Readout", sub: "Synthesizing strategic interpretation\u2026" },
+  ],
+
+  scoreInterpretation: (score: number): string => {
+    if (score >= 80) return "Your decisions appear to be grounded in validated audience understanding. Proceed with confidence \u2014 and maintain that intelligence edge.";
+    if (score >= 60) return "You have directional clarity, but gaps in audience validation could weaken performance on this move.";
+    if (score >= 40) return "Your decision is partially informed. Expect inconsistency in outcomes without stronger audience intelligence.";
+    return "This move is being shaped more by assumption than evidence. The risk to your investment is elevated.";
+  },
+
+  readinessBand: (score: number): string => {
+    if (score >= 80) return "Evidence-Based";
+    if (score >= 60) return "Directionally Clear";
+    if (score >= 40) return "Partially Informed";
+    return "Assumption-Driven";
   },
 
   vsl: {
-    videoUrl: "https://assets.cdn.filesafe.space/5acTuTfeFkOQRwxAXWLx/media/69c14a17b0d6d740ee237f71.mp4",
-    headline: "You've Seen the Numbers.",
-    subheadline: "Identify your highest-leverage opportunity—and activate it immediately.",
-    bookingButtonText: "Schedule Your Wealth Redirection Session",
-    bookingButtonMicrocopy: "A complimentary strategy session to determine your highest-impact opportunity.",
-    calendarUrl: "https://links.quietwealthengine.com/widget/booking/fA95vEUfzE9zbdjRnefn",
-    offerSectionHeading: "What Happens Inside Your Wealth Redirection Activation",
+    videoUrl: "",
+    headline: "You\u2019ve Seen the Gaps.",
+    subheadline: "Get clear on what your audience is actually signaling before you move forward with this decision.",
+    bookingButtonText: "Book Your Decision Intelligence Debrief",
+    bookingButtonMicrocopy: "A focused session to close the intelligence gaps revealed in your diagnostic.",
+    calendarUrl: "https://links.quietwealthengine.com/widget/booking/y6sWQKcR4X62dJqD71ol",
+    callName: "Decision Intelligence Debrief",
+    offerSectionHeading: "What Happens Inside Your Decision Intelligence Debrief",
     offerBlocks: [
-      { title: "Full Strategic Analysis", description: "We go beyond the diagnostic and evaluate your complete financial structure— including income flow, tax exposure, entity design, and wealth positioning." },
-      { title: "Identify the Highest-Leverage Opportunity", description: "We isolate the single most impactful move available to you— the one that creates the greatest financial shift with the least disruption." },
-      { title: "Immediate Activation Strategy", description: "You don\u2019t leave with theory. You leave with a clear, executable plan that can be implemented right away— either with your CPA or through coordinated support." },
-      { title: "Designed for Real Financial Impact", description: "This is not about small adjustments. This is about restructuring how your income works— so you can begin retaining and redirecting more of your capital." },
+      { title: "Review Your Score & Decision Readiness", description: "Walk through your Audience Intelligence Score and what it reveals about your current decision readiness." },
+      { title: "Break Down Your Specific Move", description: "Examine the exact decision you\u2019re preparing for and identify where assumption may be replacing real audience insight." },
+      { title: "Surface Critical Intelligence Gaps", description: "Pinpoint the specific gaps in audience understanding that could impact performance on this move." },
+      { title: "Clarify What Needs to Be Known", description: "Leave with a clear picture of what audience intelligence is missing and what needs to be addressed before moving forward." },
     ],
-    whyMattersHeading: "Why This Conversation Matters",
-    whyMattersBody: "Most high earners are operating within compliant systems— but not optimized ones. That gap is where significant financial opportunity often exists. This session is designed to determine:",
-    whyMattersBullets: [
-      "Whether those opportunities exist in your current structure",
-      "What your highest-impact move would be",
-      "And whether it makes sense to move forward",
-    ],
-    qualifierHeading: "This is best suited for individuals who:",
+    ifWeWorkTogether: {
+      heading: "If We Decide to Work Together",
+      body: "If it\u2019s clear that your business is preparing for a meaningful move and there are critical gaps in audience understanding, the next step is a deeper engagement \u2014 a structured process designed to extract the real audience intelligence behind your decision.",
+      bullets: [
+        "A deeper audience intelligence extraction process tied to your specific business move",
+        "Clear insight into what your audience actually needs, values, expects, and responds to",
+        "Identification of the blind spots, disconnects, and assumptions weakening your current direction",
+        "A structured breakdown of the audience signals that should inform your next move",
+        "Decision-grade insight to guide your launch, campaign, investment, or expansion strategy",
+      ],
+    },
+    qualifierHeading: "Who This Is For",
     qualifierBullets: [
-      "Have experienced a six-figure tax liability",
-      "Have established income or business revenue",
-      "Are ready to move beyond basic tax preparation into strategy",
+      "Preparing for a launch, campaign, or strategic move",
+      "Making a meaningful financial or operational investment",
+      "Looking to reduce risk before committing more time, money, or resources",
     ],
-    finalCtaHeading: "Ready to See What's Possible?",
-    finalCtaButtonText: "Book Your Wealth Redirection Session",
-    finalCtaMicrocopy: "We'll walk through your results and identify your highest-impact next move.",
+    investmentContext: "Most businesses moving into this work are preparing for decisions in the $25K\u2013$250K+ range and want to ensure those decisions are grounded in real audience insight.",
+    finalCtaHeading: "Ready to See What Your Audience Is Actually Signaling?",
+    finalCtaButtonText: "Book Your Decision Intelligence Debrief",
+    finalCtaMicrocopy: "We\u2019ll walk through your results and clarify what needs to be addressed before your next move.",
   },
 
   preQual: {
-    intro: "This strategy session is designed for high-income earners and business owners who are ready to move beyond basic tax compliance into structured wealth redirection. To make sure this is the right fit before we get on a call, please answer the following questions honestly.",
+    intro: "This session is designed for businesses preparing to make a meaningful strategic move and looking to ensure their decisions are grounded in real audience intelligence. To make sure this is the right fit, please answer the following questions.",
     questions: [
       {
-        question: "Have you had a federal tax liability of $250,000 or more in the last 12 months?",
+        question: "Are you currently preparing to make a strategic move in your business?",
         type: "yesno" as const,
         options: [
-          { label: "Yes — my tax bill has been $250K or more", value: "Yes — my tax bill has been $250K or more" },
-          { label: "No — I'm not at that level yet", value: "No — I'm not at that level yet" },
+          { label: "Yes \u2014 within the next 30 days", value: "Yes \u2014 within the next 30 days" },
+          { label: "Yes \u2014 within the next 60\u201390 days", value: "Yes \u2014 within the next 60\u201390 days" },
+          { label: "Not immediately, but actively planning", value: "Not immediately, but actively planning" },
+          { label: "No active plans right now", value: "No active plans right now" },
         ],
       },
       {
-        question: "Are you currently working with a CPA or tax professional?",
+        question: "What type of decision are you preparing for?",
         type: "yesno" as const,
         options: [
-          { label: "Yes — I have a CPA handling my taxes", value: "Yes — I have a CPA handling my taxes" },
-          { label: "No — I'm not currently working with one", value: "No — I'm not currently working with one" },
+          { label: "Launching a new product or offer", value: "Launching a new product or offer" },
+          { label: "Planning or scaling a marketing campaign", value: "Planning or scaling a marketing campaign" },
+          { label: "Repositioning an existing offer", value: "Repositioning an existing offer" },
+          { label: "Investing in infrastructure, systems, or equipment", value: "Investing in infrastructure, systems, or equipment" },
+          { label: "Expanding into a new market or location", value: "Expanding into a new market or location" },
         ],
       },
       {
-        question: "If we identify a strategy that could significantly reduce your tax liability and redirect those savings into wealth-building vehicles you own — is an investment of $10,000 to make that happen feasible for you right now?",
+        question: "What level of investment is associated with this decision?",
         type: "yesno" as const,
         options: [
-          { label: "Yes — that's a feasible investment for the right outcome", value: "Yes — that's a feasible investment for the right outcome" },
-          { label: "No — I'm not in a position to invest at that level right now", value: "No — I'm not in a position to invest at that level right now" },
+          { label: "Less than $10,000", value: "Less than $10,000" },
+          { label: "$10,000\u2013$50,000", value: "$10,000\u2013$50,000" },
+          { label: "$50,000\u2013$150,000", value: "$50,000\u2013$150,000" },
+          { label: "$150,000+", value: "$150,000+" },
         ],
       },
       {
-        question: "What specific questions do you need answered on this call in order to feel confident moving forward?",
+        question: "If this session identifies gaps that could impact the outcome of your decision, is a minimum $7,500 investment feasible for you right now?",
+        type: "yesno" as const,
+        options: [
+          { label: "Yes", value: "Yes" },
+          { label: "No", value: "No" },
+        ],
+      },
+      {
+        question: "If it becomes clear that your current direction is missing critical audience insight, are you prepared to address it?",
+        type: "yesno" as const,
+        options: [
+          { label: "Yes", value: "Yes" },
+          { label: "No", value: "No" },
+        ],
+      },
+      {
+        question: "What is your biggest concern about this decision right now?",
         type: "text" as const,
-      },
-      {
-        question: "If all of your questions are answered and you feel this is the right fit — are you prepared to make a decision on the call?",
-        type: "yesno" as const,
-        options: [
-          { label: "Yes — if it's the right fit, I'm ready to move forward", value: "Yes — if it's the right fit, I'm ready to move forward" },
-          { label: "No — I'll need more time after the call", value: "No — I'll need more time after the call" },
-        ],
       },
     ],
   },
@@ -118,9 +187,9 @@ export const diagnosticConfig = {
   },
 
   quadrants: [
-    { key: "structure", name: "Income Flow Structure", description: "Measures inefficiencies related to business entity selection, compensation design, and SE tax exposure." },
-    { key: "deduction", name: "Deduction System Leak", description: "Measures likelihood of missed allowable deductions and reactive tax behavior." },
-    { key: "asset", name: "Asset & Depreciation Leak", description: "Measures inefficiencies tied to asset purchase timing and depreciation strategy." },
-    { key: "wealthVehicle", name: "Wealth Vehicle Leak", description: "Measures potential underutilization of tax-advantaged wealth vehicles and deferral mechanisms." },
+    { key: "audienceClarity", name: "Audience Clarity", description: "Measures how specifically you\u2019ve defined your target audience and how well you understand their current priorities and motivations." },
+    { key: "decisionValidation", name: "Decision Validation", description: "Evaluates whether this decision has been tested or validated with real audience behavior rather than internal assumptions." },
+    { key: "behavioralEvidence", name: "Behavioral Evidence", description: "Assesses the quality of signals you\u2019re using to guide this decision and how actively you\u2019re tracking audience response." },
+    { key: "messageAlignment", name: "Message & Offer Alignment", description: "Measures how closely your messaging reflects audience psychology and whether your offer solves a problem your audience is actively trying to fix." },
   ],
 };

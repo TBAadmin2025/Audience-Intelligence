@@ -1,22 +1,21 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  ChevronLeft, ShieldCheck, ArrowRight, Lock, Activity, TriangleAlert, TrendingUp, Video, Calculator
-} from "lucide-react";
+import { ChevronLeft, ShieldCheck, ArrowRight, Lock } from "lucide-react";
 import { runScoring, DiagnosticAnswers } from "./client/scoring";
-import { questions } from "./client/questions";
+import { questions, contextQuestions } from "./client/questions";
 import { diagnosticConfig } from "./client/config";
 
 // ==========================================
-// INLINED VLARI UI COMPONENTS
+// DEANAR UI COMPONENTS
 // ==========================================
-const ProgressBar = ({ current, total }: { current: number, total: number }) => {
+const ProgressBar = ({ current, total }: { current: number; total: number }) => {
   const progress = (current / total) * 100;
   return (
-    <div className="w-full h-1 bg-white/5 relative z-50">
+    <div className="w-full h-[2px] bg-greige relative z-50">
       <motion.div
-        className="h-full bg-gold-gradient"
-        initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+        className="h-full bg-crimson"
+        initial={{ width: 0 }}
+        animate={{ width: `${progress}%` }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       />
     </div>
@@ -26,24 +25,30 @@ const ProgressBar = ({ current, total }: { current: number, total: number }) => 
 const QuestionCard = ({ question, options, onSelect, value }: any) => {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-12">
-      <h2 className="font-serif text-4xl md:text-6xl text-[var(--color-text)] leading-tight font-normal">
+      <h2 className="serif text-4xl md:text-6xl text-paper leading-tight font-normal">
         {question}
       </h2>
       <div className="grid grid-cols-1 gap-4">
         {options.map((opt: string, idx: number) => (
           <motion.button
             key={opt}
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
             onClick={() => onSelect(opt)}
-            className={`w-full text-left p-6 md:p-8 rounded-sm border transition-all duration-300 flex items-center justify-between group ${
-              value === opt ? "bg-[var(--color-accent)]/10 border-[var(--color-accent)]" : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-[var(--color-accent)]/50"
+            className={`w-full text-left p-6 md:p-8 border transition-all duration-300 flex items-center justify-between group ${
+              value === opt
+                ? "border-camel bg-camel/10 text-paper"
+                : "border-greige/20 bg-paper/5 text-paper/70 hover:border-camel/50 hover:bg-paper/10"
             }`}
           >
-            <span className="text-lg md:text-xl font-light text-[var(--color-text)]">{opt}</span>
-            <div className={`w-5 h-5 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
-              value === opt ? "border-[var(--color-accent)] bg-[var(--color-accent)]" : "border-white/20 group-hover:border-[var(--color-accent)]/50"
-            }`}>
-              {value === opt && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]"></div>}
+            <span className="font-light text-lg md:text-xl">{opt}</span>
+            <div
+              className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 ml-4 ${
+                value === opt ? "border-camel bg-camel" : "border-greige/40"
+              }`}
+            >
+              {value === opt && <div className="w-2 h-2 bg-paper" />}
             </div>
           </motion.button>
         ))}
@@ -52,173 +57,204 @@ const QuestionCard = ({ question, options, onSelect, value }: any) => {
   );
 };
 
-const ProcessingScreen = ({ apiReady, onComplete }: { apiReady: boolean; onComplete: () => void }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [completing, setCompleting] = useState(false);
-
-  const steps = [
-    { label: "Initializing Redirection", sub: "Establishing secure 256-bit connection..." },
-    { label: "Parsing Financial Footprint", sub: "Analyzing income flow and entity structure..." },
-    { label: "Running Tax Drag Simulation", sub: "Modeling 2026 progressive tax impact..." },
-    { label: "Optimizing Wealth Vehicles", sub: "Identifying redirection capture points..." },
-    { label: "Finalizing Private Report", sub: "Synthesizing strategic interpretation..." }
-  ];
-
-  // Animate progress to 90% over 10 seconds, then hold
-  useEffect(() => {
-    if (completing) return;
-    const totalDuration = 10000;
-    const maxProgress = 90;
-    const interval = 100;
-    const increment = (interval / totalDuration) * maxProgress;
-
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= maxProgress) {
-          clearInterval(timer);
-          return maxProgress;
-        }
-        return Math.min(prev + increment, maxProgress);
-      });
-    }, interval);
-
-    return () => clearInterval(timer);
-  }, [completing]);
-
-  // When APIs finish, jump to 100% and redirect
-  useEffect(() => {
-    if (apiReady && !completing) {
-      setCompleting(true);
-      setProgress(100);
-      const timeout = setTimeout(() => onComplete(), 800);
-      return () => clearTimeout(timeout);
-    }
-  }, [apiReady, completing, onComplete]);
-
-  useEffect(() => {
-    const stepTimer = setInterval(() => setCurrentStep(prev => (prev < steps.length - 1 ? prev + 1 : prev)), 2000);
-    return () => clearInterval(stepTimer);
-  }, []);
+const ProcessingScreen = ({
+  progress,
+  currentStep,
+}: {
+  progress: number;
+  currentStep: number;
+}) => {
+  const steps = diagnosticConfig.processingSteps;
+  const size = 240;
+  const strokeWidth = 14;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="min-h-screen vlari-bg flex flex-col items-center justify-center p-6 text-center">
-      <div className="max-w-2xl w-full space-y-16">
-        <div className="space-y-6">
-          <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-[var(--color-accent)] opacity-80">Architecting Your Private Wealth Score</p>
-          <h2 className="font-serif text-4xl md:text-5xl font-normal text-[var(--color-text)]">Our structural engine is modeling your redirection opportunities.</h2>
-        </div>
-
-        {/* Progress Ring */}
+    <div className="min-h-screen deanar-bg-oxblood flex flex-col items-center justify-center px-6 relative overflow-hidden">
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-multiply"
+        style={{
+          backgroundImage: `url('${diagnosticConfig.brand.motifs.intersections}')`,
+        }}
+      />
+      <div className="relative z-10 text-center space-y-16 max-w-2xl mx-auto">
+        {/* Circular gauge */}
         <div className="flex justify-center">
-          <div className="relative" style={{ width: 200, height: 200 }}>
-            <svg className="w-full h-full transform -rotate-90">
-              <circle cx={100} cy={100} r={88} stroke="rgba(255,255,255,0.05)" strokeWidth={8} fill="transparent" />
+          <div
+            className="relative flex items-center justify-center"
+            style={{ width: size, height: size }}
+          >
+            <svg className="transform -rotate-90 w-full h-full">
+              <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke="rgba(214,206,196,0.1)"
+                strokeWidth={strokeWidth}
+                fill="transparent"
+              />
               <motion.circle
-                cx={100} cy={100} r={88} stroke="var(--color-accent)" strokeWidth={8} fill="transparent" strokeLinecap="round"
-                strokeDasharray={88 * 2 * Math.PI}
-                animate={{ strokeDashoffset: 88 * 2 * Math.PI * (1 - progress / 100) }}
-                transition={{ duration: 0.3, ease: "linear" }}
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke="#B89F82"
+                strokeWidth={strokeWidth}
+                fill="transparent"
+                strokeDasharray={circumference}
+                initial={{ strokeDashoffset: circumference }}
+                animate={{ strokeDashoffset }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                strokeLinecap="butt"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-serif text-5xl font-medium text-marble">{Math.round(progress)}%</span>
+              <span className="serif text-5xl font-medium text-paper">
+                {Math.round(progress)}%
+              </span>
+              <span className="text-[9px] font-semibold uppercase tracking-[0.3em] text-camel/50 mt-1">
+                Analyzing
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Steps */}
-        <div className="space-y-6 max-w-md mx-auto">
-          {steps.map((s, i) => (
-            <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: i <= currentStep ? 1 : 0.2 }} className="flex items-center gap-5">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
-                i < currentStep ? "bg-[var(--color-accent)] text-[var(--color-primary)]" :
-                i === currentStep ? "bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/50" :
-                "bg-white/5 text-white/20"
-              }`}>
-                {i < currentStep ? "✓" : i + 1}
-              </div>
-              <div className="text-left">
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/60">{s.label}</div>
-                <div className="text-[9px] text-marble/30 tracking-wider">{s.sub}</div>
-              </div>
-            </motion.div>
+        {/* Step label */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-4"
+          >
+            <h3 className="serif text-3xl md:text-4xl text-paper font-normal">
+              {steps[currentStep]?.heading}
+            </h3>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-camel/60">
+              {steps[currentStep]?.sub}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Step dots */}
+        <div className="flex items-center justify-center gap-3">
+          {steps.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 transition-all duration-500 ${
+                i <= currentStep ? "w-8 bg-camel" : "w-8 bg-paper/10"
+              }`}
+            />
           ))}
         </div>
 
-        <div className="pt-12 flex items-center justify-center gap-8 opacity-30">
-          <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-marble"><Lock className="w-3 h-3 text-[var(--color-accent)]" /> Encrypted Analysis</div>
-          <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-marble"><ShieldCheck className="w-3 h-3 text-[var(--color-accent)]" /> Secure 256-Bit</div>
+        {/* Trust signals */}
+        <div className="flex items-center justify-center gap-8 text-paper/30">
+          <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.3em]">
+            <Lock className="w-3 h-3" /> Private Analysis
+          </div>
+          <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.3em]">
+            <ShieldCheck className="w-3 h-3" /> Confidential Session
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const ScoreGauge = ({ score, size = 200, strokeWidth = 12, color = "var(--color-accent)" }: any) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg className="transform -rotate-90 w-full h-full">
-        <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(255,255,255,0.05)" strokeWidth={strokeWidth} fill="transparent" />
-        <motion.circle
-          cx={size / 2} cy={size / 2} r={radius} stroke={color} strokeWidth={strokeWidth} fill="transparent"
-          strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset }}
-          transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }} strokeLinecap="round"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="serif text-5xl md:text-7xl font-medium text-marble">{score}</span>
-        <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-gold-metallic/40 mt-1">Score</span>
-      </div>
-    </div>
-  );
-};
-
 // ==========================================
-// MAIN APP COMPONENT (PRESERVING YOUR LOGIC)
+// MAIN APP
 // ==========================================
-type Step = "intro" | "contact" | "questions" | "processing" | "results";
+type Step = "intro" | "contact" | "questions" | "context" | "processing";
 
 export default function App() {
   const [step, setStep] = useState<Step>("intro");
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phone: "" });
-  const [results, setResults] = useState<any>(null);
-  const [commentary, setCommentary] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [apiReady, setApiReady] = useState(false);
+  const [contact, setContact] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    investmentSize: "",
+  });
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [currentQ, setCurrentQ] = useState(0);
+  const [sessionId, setSessionId] = useState("");
+  const [direction, setDirection] = useState(1);
 
-  const activeQuestions = questions.filter(q => !q.condition || q.condition(answers));
+  // Context screen answers
+  const [contextAnswers, setContextAnswers] = useState<Record<string, string>>(
+    {}
+  );
 
-  // YOUR ORIGINAL LOGIC
-  const handleAnswer = (val: string) => {
-    const qId = activeQuestions[currentQuestion].id;
-    setAnswers(prev => ({ ...prev, [qId]: val }));
-    // Added a slight delay for UI polish before advancing
-    setTimeout(() => {
-      if (currentQuestion < activeQuestions.length - 1) setCurrentQuestion(prev => prev + 1);
-      else generateResults();
-    }, 400);
-  };
+  // Processing state
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [processingStep, setProcessingStep] = useState(0);
+  const [apisFinished, setApisFinished] = useState(false);
 
-  // Create Supabase session + fire GHL start on contact form submit
+  // Active (non-conditional) questions
+  const activeQuestions = questions.filter(
+    (q) => !q.condition || q.condition(answers)
+  );
+
+  // Get current dimension section number
+  const currentDimension = activeQuestions[currentQ]?.dimension;
+  const dimensionIndex = diagnosticConfig.quadrants.findIndex(
+    (q) => q.key === currentDimension
+  );
+
+  // ---- Processing animation ----
+  useEffect(() => {
+    if (step !== "processing") return;
+
+    const stepCount = diagnosticConfig.processingSteps.length;
+    const stepDuration = 2000;
+    const totalDuration = stepCount * stepDuration;
+
+    // Step counter
+    const stepInterval = setInterval(() => {
+      setProcessingStep((prev) => {
+        if (prev < stepCount - 1) return prev + 1;
+        return prev;
+      });
+    }, stepDuration);
+
+    // Progress — hold at 90% until APIs finish
+    const progressInterval = setInterval(() => {
+      setProcessingProgress((prev) => {
+        const target = apisFinished ? 100 : 90;
+        if (prev >= target) return target;
+        return prev + 1;
+      });
+    }, totalDuration / 90);
+
+    return () => {
+      clearInterval(stepInterval);
+      clearInterval(progressInterval);
+    };
+  }, [step, apisFinished]);
+
+  // Redirect when processing complete
+  useEffect(() => {
+    if (step === "processing" && processingProgress >= 100 && apisFinished) {
+      const timer = setTimeout(() => {
+        window.location.href = `/report/${sessionId}`;
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [step, processingProgress, apisFinished, sessionId]);
+
+  // ---- Handlers ----
   const handleContactSubmit = async () => {
-    setLoading(true);
     try {
-      // Create session in Supabase
-      const saveRes = await fetch("/api/save-session", {
+      const res = await fetch("/api/save-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contact }),
       });
-      const saveData = await saveRes.json();
-      if (saveData.sessionId) setSessionId(saveData.sessionId);
+      const data = await res.json();
+      if (data.sessionId) setSessionId(data.sessionId);
 
       // Fire-and-forget GHL start
       fetch("/api/ghl-start", {
@@ -226,574 +262,446 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contact }),
       }).catch(() => {});
-    } catch (e) {
-      console.error("Session creation error:", e);
-    } finally {
-      setLoading(false);
+
+      setStep("questions");
+    } catch {
       setStep("questions");
     }
   };
 
-  // Run scoring, AI, update Supabase, fire GHL complete, redirect to report
-  const generateResults = async () => {
-    setLoading(true);
-    setApiReady(false);
-    setStep("processing");
+  const handleAnswer = (value: string) => {
+    const q = activeQuestions[currentQ];
+    const updated = { ...answers, [q.id]: value };
+    setAnswers(updated);
 
-    const diagnosticInput: DiagnosticAnswers = {
+    setTimeout(() => {
+      if (currentQ < activeQuestions.length - 1) {
+        setDirection(1);
+        setCurrentQ(currentQ + 1);
+      } else {
+        // All 12 questions done — go to context screen
+        setStep("context");
+      }
+    }, 300);
+  };
+
+  const handleBack = () => {
+    if (currentQ > 0) {
+      setDirection(-1);
+      setCurrentQ(currentQ - 1);
+    }
+  };
+
+  const handleContextSubmit = () => {
+    // Merge context answers and start processing
+    const allAnswers: DiagnosticAnswers = {
       ...answers,
-      ownsBusiness: answers.ownsBusiness === "Yes",
-      subjectToSE: answers.subjectToSE === "Yes",
-      runningPayroll: answers.runningPayroll === "Yes",
-      contributesRetirement: answers.contributesRetirement === "Yes",
-      strategyReviewed: answers.strategyReviewed === "Yes",
-      usingAdvancedStrategies: answers.usingAdvancedStrategies === "Yes",
-      ownsAssets: answers.ownsAssets === "Yes",
-      offersBenefits: answers.offersBenefits === "Yes",
-      highInsuranceCosts: answers.highInsuranceCosts === "Yes",
-      developingIP: answers.developingIP === "Yes",
-      ownerSalary: answers.ownerSalary || "Not applicable",
-    } as DiagnosticAnswers;
+      ...contextAnswers,
+      investmentSize: contact.investmentSize,
+    };
 
-    const res = runScoring(diagnosticInput);
-    setResults(res);
+    setStep("processing");
+    generateResults(allAnswers);
+  };
 
-    let aiCommentary = "";
+  const generateResults = async (allAnswers: DiagnosticAnswers) => {
     try {
-      const aiRes = await fetch("/api/ai-commentary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ results: res, profile: answers })
-      });
-      const aiData = await aiRes.json();
-      aiCommentary = aiData.commentary || "";
-      setCommentary(aiCommentary);
-    } catch (e) { console.error("AI commentary error:", e); }
+      const results = runScoring(allAnswers);
 
-    // Build raw answers for storage
-    const rawAnswers = activeQuestions
-      .map(q => ({ question: q.q, answer: answers[q.id] ?? null }));
+      // Build raw answers array
+      const rawAnswers = [
+        ...questions.map((q) => ({
+          question: q.q,
+          answer: allAnswers[q.id] || "",
+        })),
+        ...contextQuestions.map((q) => ({
+          question: q.q,
+          answer: allAnswers[q.id] || "",
+        })),
+        {
+          question: "Investment Size",
+          answer: contact.investmentSize,
+        },
+      ];
 
-    // Update Supabase session with results
-    if (sessionId) {
+      // AI commentary
+      let commentary = "";
       try {
-        await fetch("/api/update-session", {
+        const aiRes = await fetch("/api/ai-commentary", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            sessionId,
-            results: res,
-            rawAnswers,
-            commentary: aiCommentary,
+            results,
+            profile: { firstName: contact.firstName },
           }),
         });
-      } catch (e) { console.error("Session update error:", e); }
+        const aiData = await aiRes.json();
+        commentary = aiData.commentary || "";
+      } catch {
+        commentary = "";
+      }
 
-      // Fire-and-forget GHL complete
+      // Save session
+      await fetch("/api/update-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          results,
+          rawAnswers,
+          commentary,
+        }),
+      });
+
+      // GHL complete (fire-and-forget)
       fetch("/api/ghl-complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contact,
-          results: res,
+          results,
           sessionId,
-          commentary: aiCommentary,
+          commentary,
         }),
       }).catch(() => {});
-    }
 
-    setLoading(false);
-    setApiReady(true);
+      setApisFinished(true);
+    } catch (err) {
+      console.error("Result generation failed:", err);
+      setApisFinished(true);
+    }
   };
 
-  // --- RENDERS ---
-
+  // ==========================================
+  // RENDER: INTRO
+  // ==========================================
   if (step === "intro") {
     return (
-      <div className="font-sans vlari-bg flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/6b2e7cf1-13d3-4f90-a083-47644dbc2c4e/1771943769366_Vlari_Motif_20260224_0933.png')] bg-cover bg-center opacity-10 mix-blend-luminosity"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#121E38]/30 via-[var(--color-bg)]/90 to-[var(--color-bg)]"></div>
+      <div className="min-h-screen deanar-bg-graphite flex flex-col items-center justify-center px-6 relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-luminosity scale-105"
+          style={{
+            backgroundImage: `url('${diagnosticConfig.brand.motifs.structuralLogic}')`,
+          }}
+        />
+        <div className="relative z-10 text-center max-w-5xl mx-auto space-y-10">
+          {/* Brand name */}
+          <h2 className="serif text-3xl text-paper tracking-[0.3em] uppercase">
+            DEANAR
+          </h2>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="space-y-16 relative z-10 max-w-5xl w-full">
-          <div className="space-y-6">
-            <h1 className="font-serif text-6xl md:text-8xl font-medium tracking-[0.15em] uppercase text-gold-gradient drop-shadow-2xl">{diagnosticConfig.brand.appName}</h1>
-            <div className="h-px w-16 bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent mx-auto opacity-60"></div>
+          {/* Thin line */}
+          <div className="w-16 h-px bg-camel mx-auto opacity-60" />
+
+          {/* Badge */}
+          <div className="inline-flex items-center gap-3 px-5 py-2 border border-camel/30 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-camel">
+            Audience Intelligence Diagnostic
           </div>
 
-          <div className="space-y-8 artisan-card p-12 md:p-20 border-none shadow-none bg-transparent">
-            <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-[var(--color-accent)] opacity-80 mb-4">Strategic Wealth Diagnostic</p>
-            <h2 className="font-serif text-5xl md:text-7xl leading-[1.1] font-normal text-[var(--color-text)]">
-              {diagnosticConfig.copy.introHeadline.split(" ").slice(0, -1).join(" ")} <span className="italic text-gold-gradient">{diagnosticConfig.copy.introHeadline.split(" ").slice(-1)[0]}</span>
-            </h2>
-            <p className="text-lg md:text-xl text-[var(--color-text)]/70 font-light max-w-2xl mx-auto leading-relaxed pt-6">
-              {diagnosticConfig.copy.introSubheadline}
-            </p>
-          </div>
+          {/* Main heading */}
+          <h1 className="serif text-5xl md:text-7xl lg:text-8xl font-normal text-paper leading-tight">
+            Are You Making Your Big Bets{" "}
+            <span className="italic font-normal text-camel">
+              in the Right Place?
+            </span>
+          </h1>
 
-          <div className="pt-4">
-            <button onClick={() => setStep("contact")} className="group px-14 py-6 btn-primary text-[11px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 mx-auto rounded-sm">
-              Begin Diagnostic <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-500" />
-            </button>
-          </div>
+          {/* Description */}
+          <p className="font-light text-paper/70 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            {diagnosticConfig.copy.introSubheadline}
+          </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 pt-16 opacity-40">
-             <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--color-text)]"><Lock className="w-3 h-3 text-[var(--color-accent)]" /> Secure Redirection</div>
-             <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--color-text)]"><ShieldCheck className="w-3 h-3 text-[var(--color-accent)]" /> Private Encryption</div>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
+          {/* CTA */}
+          <button
+            onClick={() => setStep("contact")}
+            className="btn-primary px-10 py-6 text-sm inline-flex items-center gap-3 group"
+          >
+            Begin Diagnostic
+            <ArrowRight className="w-4 h-4 transform transition-transform group-hover:translate-x-1" />
+          </button>
 
-  if (step === "contact") {
-    return (
-      <div className="min-h-screen font-sans vlari-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="artisan-card max-w-2xl w-full p-10 md:p-16 space-y-12 relative z-10 rounded-sm">
-          <div className="text-center space-y-6">
-            <div className="w-16 h-16 bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/20 rounded-sm flex items-center justify-center mx-auto mb-6">
-              <ShieldCheck className="w-8 h-8 text-[var(--color-accent)]" />
+          {/* Trust signals */}
+          <div className="flex items-center justify-center gap-8 text-paper/30 pt-6">
+            <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.25em]">
+              <Lock className="w-3 h-3" /> Confidential
             </div>
-            <h2 className="font-serif text-4xl md:text-5xl font-medium text-[var(--color-text)]">Secure Your <span className="italic text-gold-gradient">Analysis</span></h2>
-            <p className="text-base text-[var(--color-text)]/60 font-light leading-relaxed px-4">
-              Provide your details below to begin your private wealth redirection diagnostic.
-            </p>
-          </div>
-
-          <form onSubmit={(e) => { e.preventDefault(); handleContactSubmit(); }} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--color-accent)]/80 ml-1">First Name</label>
-                <input required type="text" className="w-full glass-input p-4 rounded-sm text-sm"
-                  value={contact.firstName} onChange={(e) => setContact(prev => ({ ...prev, firstName: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--color-accent)]/80 ml-1">Last Name</label>
-                <input required type="text" className="w-full glass-input p-4 rounded-sm text-sm"
-                  value={contact.lastName} onChange={(e) => setContact(prev => ({ ...prev, lastName: e.target.value }))}
-                />
-              </div>
+            <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.25em]">
+              <ShieldCheck className="w-3 h-3" /> Private
             </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--color-accent)]/80 ml-1">Professional Email</label>
-              <input required type="email" className="w-full glass-input p-4 rounded-sm text-sm"
-                value={contact.email} onChange={(e) => setContact(prev => ({ ...prev, email: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--color-accent)]/80 ml-1">Direct Phone (Optional)</label>
-              <input type="tel" className="w-full glass-input p-4 rounded-sm text-sm"
-                value={contact.phone} onChange={(e) => setContact(prev => ({ ...prev, phone: e.target.value }))}
-              />
-            </div>
-
-            <button type="submit" disabled={!contact.email || !contact.firstName || loading} className="w-full py-5 btn-primary text-[11px] font-bold uppercase tracking-[0.3em] rounded-sm mt-8">
-              {loading ? "Securing Session..." : "Begin Diagnostic"}
-            </button>
-          </form>
-
-          <div className="pt-8 text-center text-[9px] font-light tracking-[0.2em] text-[var(--color-text)]/20 uppercase">
-            Strictly Confidential &bull; SSL Encrypted
           </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (step === "questions") {
-    return (
-      <div className="min-h-screen font-sans vlari-bg flex flex-col relative overflow-hidden">
-        <ProgressBar current={currentQuestion + 1} total={activeQuestions.length} />
-
-        <header className="p-8 md:p-12 flex justify-between items-center relative z-10 border-b border-white/5">
-          <div className="flex items-center">
-            <span className="font-serif font-medium text-2xl text-gold-gradient tracking-widest uppercase">{diagnosticConfig.brand.appName}</span>
-          </div>
-          <div className="flex items-center gap-3 text-[var(--color-text)]/40 text-[9px] font-bold uppercase tracking-[0.4em]">
-            <Activity className="w-3 h-3 text-[var(--color-accent)]/50" />
-            Section 0{Math.floor(currentQuestion / 3) + 1}
-          </div>
-        </header>
-
-        <div className="flex-1 flex flex-col justify-center max-w-5xl mx-auto w-full py-12 px-6 relative z-10">
-          <AnimatePresence mode="wait">
-            <motion.div key={currentQuestion} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
-              <QuestionCard
-                question={activeQuestions[currentQuestion].q}
-                options={activeQuestions[currentQuestion].options}
-                onSelect={handleAnswer}
-                value={answers[activeQuestions[currentQuestion].id]}
-              />
-
-              <div className="mt-24 flex items-center justify-between max-w-4xl mx-auto border-t border-white/5 pt-8">
-                <button
-                  onClick={() => currentQuestion > 0 ? setCurrentQuestion(prev => prev - 1) : setStep("contact")}
-                  className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.4em] text-[var(--color-text)]/30 hover:text-[var(--color-accent)] transition-all group"
-                >
-                  <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
-                </button>
-                <div className="text-[9px] font-bold uppercase tracking-[0.5em] text-[var(--color-text)]/10 hidden md:block">
-                  Diagnostic Module v3.0
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
         </div>
       </div>
     );
   }
 
-  if (step === "processing") return <ProcessingScreen apiReady={apiReady} onComplete={() => sessionId ? window.location.href = `/report/${sessionId}` : setStep("results")} />;
-
-  if (step === "results" && results) {
-    const quadrantDefs = diagnosticConfig.quadrants.map((q, i) => ({
-      id: i + 1,
-      title: q.name,
-      key: q.key,
-      color: i % 2 === 0 ? diagnosticConfig.brand.accentColor : diagnosticConfig.brand.accentSecondary,
-      desc: q.description,
-    }));
-
-    const getOpportunityBand = (val: number) => {
-      if (val < 50000) return "Controlled";
-      if (val < 150000) return "Moderate";
-      if (val < 350000) return "Elevated";
-      return "Significant";
-    };
-
-    const getScoreInterpretation = (score: number) => {
-      if (score >= 80) return "Your financial structure shows relatively strong efficiency with targeted optimization opportunities.";
-      if (score >= 50) return "Detectable structural inefficiencies are likely reducing wealth retention.";
-      return "Your current structure suggests elevated wealth leakage and optimization gaps.";
-    };
-
-    const getTaxDragInterpretation = (ratio: number) => {
-      if (ratio < 0.15) return "Low Drag";
-      if (ratio < 0.25) return "Normal";
-      if (ratio < 0.35) return "Elevated";
-      return "High Pressure";
-    };
+  // ==========================================
+  // RENDER: CONTACT
+  // ==========================================
+  if (step === "contact") {
+    const isValid =
+      contact.firstName.trim() &&
+      contact.lastName.trim() &&
+      contact.email.trim() &&
+      contact.investmentSize;
 
     return (
-      <div className="min-h-screen font-sans vlari-bg selection:bg-gold-metallic/30 flex flex-col">
-        <header className="bg-midnight/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
-          <div className="max-w-[1400px] mx-auto px-10 py-6 flex justify-between items-center w-full">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gold-metallic rounded-sm flex items-center justify-center mr-4 shadow-2xl">
-                <span className="text-midnight font-serif font-bold text-lg">{diagnosticConfig.brand.appName[0]}</span>
-              </div>
-              <span className="serif font-medium text-xl text-marble tracking-[0.2em] uppercase">{diagnosticConfig.brand.appName}</span>
-            </div>
-            <button className="bg-gradient-to-r from-gold-antique to-gold-metallic text-midnight px-8 py-3 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-500 shadow-[0_10px_30px_rgba(170,124,17,0.2)] hover:scale-105">
-              Book Strategy Session
-            </button>
+      <div className="min-h-screen deanar-bg-paper flex items-center justify-center px-6 py-16">
+        <div className="w-full max-w-2xl deanar-card p-10 md:p-16 space-y-10">
+          {/* Icon */}
+          <div className="w-12 h-12 border border-crimson/30 flex items-center justify-center">
+            <ShieldCheck className="w-6 h-6 text-camel" />
           </div>
+
+          {/* Heading */}
+          <div className="space-y-3">
+            <h1 className="serif text-4xl md:text-5xl text-graphite font-normal">
+              Where Should We Send Your{" "}
+              <span className="italic font-normal text-camel">Results?</span>
+            </h1>
+            <p className="font-light text-graphite/60 text-base">
+              Tell us where to send your Audience Intelligence Readout.
+            </p>
+          </div>
+
+          {/* Form */}
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-crimson/80">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={contact.firstName}
+                  onChange={(e) =>
+                    setContact({ ...contact, firstName: e.target.value })
+                  }
+                  className="w-full glass-input p-4"
+                  placeholder="First name"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-crimson/80">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={contact.lastName}
+                  onChange={(e) =>
+                    setContact({ ...contact, lastName: e.target.value })
+                  }
+                  className="w-full glass-input p-4"
+                  placeholder="Last name"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-crimson/80">
+                Email
+              </label>
+              <input
+                type="email"
+                value={contact.email}
+                onChange={(e) =>
+                  setContact({ ...contact, email: e.target.value })
+                }
+                className="w-full glass-input p-4"
+                placeholder="email@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-crimson/80">
+                Phone{" "}
+                <span className="text-graphite/30 normal-case tracking-normal">
+                  (optional)
+                </span>
+              </label>
+              <input
+                type="tel"
+                value={contact.phone}
+                onChange={(e) =>
+                  setContact({ ...contact, phone: e.target.value })
+                }
+                className="w-full glass-input p-4"
+                placeholder="(555) 000-0000"
+              />
+            </div>
+
+            {/* Investment Size (Q15) */}
+            <div className="space-y-3">
+              <label className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-crimson/80">
+                Investment Size
+              </label>
+              <div className="grid grid-cols-1 gap-3">
+                {diagnosticConfig.investmentOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() =>
+                      setContact({ ...contact, investmentSize: opt.label })
+                    }
+                    className={`w-full text-left p-4 border transition-all duration-300 text-sm ${
+                      contact.investmentSize === opt.label
+                        ? "border-crimson bg-crimson/5 text-graphite"
+                        : "border-greige bg-paper text-graphite/70 hover:border-greige hover:bg-white"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <button
+            onClick={handleContactSubmit}
+            disabled={!isValid}
+            className="w-full btn-primary px-8 py-5 inline-flex items-center justify-center gap-3 group"
+          >
+            Begin Diagnostic
+            <ArrowRight className="w-4 h-4 transform transition-transform group-hover:translate-x-1" />
+          </button>
+
+          {/* Footer */}
+          <p className="text-center text-graphite/20 text-[9px] uppercase tracking-[0.25em]">
+            Strictly Confidential &bull; Private Session
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // RENDER: QUESTIONS (Q1-Q12)
+  // ==========================================
+  if (step === "questions") {
+    const q = activeQuestions[currentQ];
+
+    return (
+      <div className="min-h-screen deanar-bg-graphite flex flex-col relative">
+        {/* Progress bar */}
+        <ProgressBar current={currentQ + 1} total={activeQuestions.length} />
+
+        {/* Header */}
+        <header className="px-6 lg:px-12 py-6 flex justify-between items-center">
+          <span className="serif text-paper tracking-[0.25em] text-lg uppercase">
+            DEANAR
+          </span>
+          <span className="text-paper/40 text-[9px] uppercase tracking-[0.4em]">
+            Section {String(dimensionIndex + 1).padStart(2, "0")}
+          </span>
         </header>
 
-        <main className="flex-grow max-w-[1400px] w-full mx-auto px-10 py-24 space-y-32">
+        {/* Question */}
+        <div className="flex-1 flex items-center px-6 lg:px-12 pb-24">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={q.id}
+              initial={{ opacity: 0, x: direction * 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction * -20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full"
+            >
+              <QuestionCard
+                question={q.q}
+                options={q.options}
+                onSelect={handleAnswer}
+                value={answers[q.id] || ""}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-          {/* SECTION 1 — Score Overview (Hero Panel) */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-            <div className="space-y-12">
-              <div className="inline-flex items-center gap-4 px-6 py-2 bg-gold-metallic/10 border border-gold-metallic/20 rounded-sm text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic">
-                <ShieldCheck className="w-4 h-4" /> Private Diagnostic Results
-              </div>
-              <h1 className="serif text-6xl md:text-8xl font-medium text-marble leading-[1.1]">
-                Your Wealth <br/><span className="italic text-gold-gradient">Redirection Score™</span>
-              </h1>
-              <p className="text-2xl text-marble/50 font-light leading-relaxed max-w-2xl">
-                {getScoreInterpretation(results.score)} We have identified structural opportunities to redirect capital back into your control.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="artisan-card p-8 space-y-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Opportunity Band</div>
-                  <div className="text-3xl serif font-medium text-marble">{getOpportunityBand(results.financialImpact.expected)}</div>
-                </div>
-                <div className="artisan-card p-8 space-y-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Confidence Level</div>
-                  <div className="text-3xl serif font-medium text-marble">{results.confidence}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-center lg:justify-end relative">
-              <div className="absolute inset-0 bg-gold-metallic/10 blur-[120px] rounded-full"></div>
-              <div className="artisan-card p-16 w-full max-w-lg text-center space-y-10 relative z-10">
-                <div className="space-y-2">
-                  <h3 className="serif text-3xl font-medium text-marble">Wealth Redirection Score™</h3>
-                  <p className="text-[10px] text-marble/30 uppercase tracking-[0.4em]">Structural Efficiency Index</p>
-                </div>
-                <div className="flex justify-center py-4">
-                  <ScoreGauge score={results.score} size={320} strokeWidth={16} />
-                </div>
-                <div className="pt-10 border-t border-white/5 space-y-6">
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Annual Redirection Potential</span>
-                    <span className="text-4xl md:text-5xl serif font-medium text-gold-gradient">${Math.round(results.financialImpact.expected).toLocaleString()}</span>
-                  </div>
-                  <div className="text-[10px] text-marble/20 italic tracking-widest">
-                    Modeled Range: ${Math.round(results.financialImpact.low).toLocaleString()} — ${Math.round(results.financialImpact.high).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* AI Strategic Interpretation */}
-          {commentary && (
-            <section className="artisan-card p-16 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                <TrendingUp className="w-64 h-64 text-gold-metallic" />
-              </div>
-              <div className="space-y-10 relative z-10">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gold-metallic/10 border border-gold-metallic/20 rounded-sm flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-gold-metallic" />
-                  </div>
-                  <h2 className="serif text-4xl font-medium text-marble">Strategic Interpretation</h2>
-                </div>
-                <p className="text-marble/70 leading-relaxed space-y-6 whitespace-pre-wrap italic font-light text-xl md:text-2xl">
-                  {commentary}
-                </p>
-              </div>
-            </section>
-          )}
-
-          {/* SECTION 2 — Tax Profile Snapshot */}
-          <section className="bg-navy-deep/40 backdrop-blur-md border border-white/5 rounded-sm p-16 shadow-2xl">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
-              <div className="space-y-4">
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Modeled Federal Tax (2026)</div>
-                <div className="text-3xl md:text-4xl lg:text-5xl serif font-medium text-marble">${Math.round(results.metrics.baselineFedTax).toLocaleString()}</div>
-                <p className="text-[10px] text-marble/20 tracking-widest uppercase">Estimated Exposure</p>
-              </div>
-              <div className="space-y-4 border-x border-white/5 px-8">
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Tax Drag Ratio</div>
-                <div className="text-3xl md:text-4xl lg:text-5xl serif font-medium text-marble">{Math.round(results.metrics.taxDragRatio * 100)}%</div>
-                <p className="text-[10px] text-marble/20 tracking-widest uppercase">{getTaxDragInterpretation(results.metrics.taxDragRatio)}</p>
-              </div>
-              <div className="space-y-4">
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic/60">Effective Tax Rate</div>
-                <div className="text-3xl md:text-4xl lg:text-5xl serif font-medium text-marble">{Math.round(results.metrics.effectiveRate * 100)}%</div>
-                <p className="text-[10px] text-marble/20 tracking-widest uppercase">Blended Exposure</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Business Entity Structure Signal */}
-          {results.aiFlags.entitySignal && (
-            <section className="artisan-card p-12 border-l-4 border-gold-metallic">
-              <div className="flex items-start gap-8">
-                <div className="p-4 bg-gold-metallic/10 rounded-sm">
-                  <TriangleAlert className="w-8 h-8 text-gold-metallic" />
-                </div>
-                <div className="space-y-4">
-                  <h3 className="serif text-3xl font-medium text-marble">Entity Redirection Signal</h3>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-[10px] font-bold uppercase tracking-[0.3em] px-3 py-1 rounded-sm ${
-                      results.aiFlags.entitySignal.severity === "High" ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-gold-metallic/20 text-gold-metallic border border-gold-metallic/30"
-                    }`}>
-                      {results.aiFlags.entitySignal.severity} Severity Mismatch
-                    </span>
-                  </div>
-                  <p className="text-marble/60 text-lg leading-relaxed font-light">
-                    {results.aiFlags.entitySignal.message}
-                  </p>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* SECTION 3 — Quadrant Analysis */}
-          <section className="space-y-16">
-            <div className="text-center space-y-6">
-              <h2 className="serif text-5xl md:text-7xl font-medium text-marble">Quadrant <span className="italic text-gold-gradient">Diagnostics</span></h2>
-              <p className="text-2xl text-marble/50 font-light max-w-3xl mx-auto leading-relaxed">
-                A structural breakdown of where wealth is leaking from your current financial structure.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {quadrantDefs.map((q) => (
-                <div key={q.id} className="artisan-card p-12 flex flex-col hover:shadow-[0_0_60px_rgba(170,124,17,0.1)] transition-all duration-700 group">
-                  <div className="flex items-start justify-between mb-10">
-                    <div className="flex-1 space-y-4">
-                      <div className="flex items-center gap-6">
-                        <div className="w-14 h-14 bg-midnight border border-gold-metallic/30 rounded-full flex items-center justify-center text-gold-metallic font-medium text-2xl shadow-2xl group-hover:border-gold-metallic transition-colors">{q.id}</div>
-                        <div>
-                          <h3 className="serif text-3xl font-medium text-marble">{q.title}</h3>
-                          <span className={`text-[10px] font-bold uppercase tracking-[0.3em] px-3 py-1 rounded-sm mt-2 inline-block ${
-                            results.quadrants[q.key].status === "Evaluated" ? "bg-gold-metallic/10 text-gold-metallic border border-gold-metallic/20" :
-                            results.quadrants[q.key].status === "Insufficient Data" ? "bg-white/5 text-marble/30 border border-white/10" :
-                            "bg-white/5 text-marble/30 border border-white/10"
-                          }`}>
-                            {results.quadrants[q.key].status}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-marble/40 text-sm leading-relaxed font-light">{q.desc}</p>
-                    </div>
-                    <ScoreGauge score={results.quadrants[q.key].score} size={140} strokeWidth={10} color={q.color} />
-                  </div>
-                  <div className="flex-1 space-y-10">
-                    <div className={`p-6 rounded-sm font-bold text-center border uppercase tracking-[0.2em] text-xs ${results.quadrants[q.key].score < 60 ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-gold-metallic/10 text-gold-metallic border-gold-metallic/20"}`}>
-                      {results.quadrants[q.key].score < 60 ? "Critical Optimization Needed" : "Foundation Secured"}
-                    </div>
-                    <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold text-gold-metallic/60 uppercase tracking-[0.4em] flex items-center gap-3">
-                        <Activity className="w-3 h-3" /> Diagnostic Commentary
-                      </h4>
-                      <p className="text-marble/70 text-base leading-relaxed font-light italic">
-                        {results.quadrants[q.key].findings[0]}
-                      </p>
-                    </div>
-                    <div className="pt-8 border-t border-white/5">
-                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-[0.3em] text-marble/20 mb-4">
-                        <span>Wealth Impact</span>
-                        <span>Capture Potential</span>
-                      </div>
-                      <div className="flex justify-between items-baseline">
-                        <span className="text-marble/40 text-xs tracking-widest">${Math.round(results.quadrants[q.key].opportunity.low).toLocaleString()} — ${Math.round(results.quadrants[q.key].opportunity.high).toLocaleString()}</span>
-                        <span className="text-3xl serif font-medium text-marble">${Math.round(results.quadrants[q.key].opportunity.expected).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* SECTION 4 — Total Wealth Redirection Opportunity */}
-          <section className="artisan-card p-20 relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-gold-metallic/5 via-transparent to-transparent opacity-50"></div>
-            <div className="max-w-4xl mx-auto text-center space-y-16 relative z-10">
-              <div className="space-y-6">
-                <h2 className="serif text-5xl font-medium text-marble">Total Redirection <span className="italic text-gold-gradient">Potential</span></h2>
-                <p className="text-xl text-marble/40 font-light tracking-wide">The aggregate value of identified structural inefficiencies.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-                <div className="p-10 bg-white/5 border border-white/5 rounded-sm space-y-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Conservative</div>
-                  <div className="text-2xl md:text-3xl lg:text-4xl serif font-medium text-marble/60">${Math.round(results.financialImpact.low).toLocaleString()}</div>
-                </div>
-                <div className="p-14 bg-gradient-to-br from-gold-antique to-gold-metallic text-midnight rounded-sm transform scale-110 shadow-[0_30px_60px_rgba(170,124,17,0.3)] space-y-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-60">Expected Annual</div>
-                  <div className="text-4xl md:text-5xl lg:text-6xl serif font-bold tracking-tight">${Math.round(results.financialImpact.expected).toLocaleString()}</div>
-                </div>
-                <div className="p-10 bg-white/5 border border-white/5 rounded-sm space-y-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-marble/30">Aggressive</div>
-                  <div className="text-2xl md:text-3xl lg:text-4xl serif font-medium text-marble/60">${Math.round(results.financialImpact.high).toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* SECTION 5 & 6 — Confidence & Methodology */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="artisan-card p-12 space-y-8">
-              <h3 className="serif text-3xl font-medium text-marble">Confidence & Assumptions</h3>
-              <div className="flex items-center gap-4 p-5 bg-white/5 border border-white/10 rounded-sm">
-                <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(212,175,55,0.5)] ${results.confidence === "High" ? "bg-gold-metallic" : "bg-gold-antique"}`} />
-                <span className="text-[10px] font-bold text-marble uppercase tracking-[0.3em]">{results.confidence} Confidence Level</span>
-              </div>
-              <p className="text-marble/50 text-base leading-relaxed font-light">
-                This diagnostic uses your provided inputs to model structural outcomes. Higher confidence scores indicate more complete data points across income, entity, and tax clarity. Ranges are adjusted based on data certainty.
-              </p>
-            </div>
-            <div className="artisan-card p-12 space-y-8">
-              <h3 className="serif text-3xl font-medium text-marble">Methodology Panel</h3>
-              <p className="text-marble/50 text-base leading-relaxed font-light">
-                This diagnostic applies 2026 federal tax parameters, progressive tax modeling, and structural efficiency algorithms to estimate potential tax savings and wealth redirection opportunities.
-              </p>
-              <div className="pt-4 flex items-center gap-6 opacity-30">
-                <div className="text-[8px] font-bold uppercase tracking-[0.2em]">Algorithm v4.2.0</div>
-                <div className="text-[8px] font-bold uppercase tracking-[0.2em]">Tax Code 2026-Ready</div>
-              </div>
-            </div>
-          </section>
-
-          {/* SECTION 7 — Final CTA & Disclaimers */}
-          <section className="bg-gradient-to-br from-navy-deep to-midnight border border-gold-metallic/20 rounded-sm shadow-2xl p-24 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/6b2e7cf1-13d3-4f90-a083-47644dbc2c4e/1771943769366_Vlari_Motif_20260224_0933.png')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
-
-            <div className="space-y-12 relative z-10">
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-4 px-6 py-2 bg-gold-metallic/10 border border-gold-metallic/20 rounded-sm text-[10px] font-bold uppercase tracking-[0.3em] text-gold-metallic">
-                  Strategic Next Step
-                </div>
-                <h2 className="serif text-6xl md:text-8xl font-medium text-marble leading-tight">
-                  {diagnosticConfig.copy.ctaHeadline} <br /> <span className="italic text-gold-gradient">Secure Your Future.</span>
-                </h2>
-                <p className="text-2xl text-marble/50 font-light max-w-3xl mx-auto leading-relaxed">
-                  {diagnosticConfig.copy.ctaSubheadline}
-                </p>
-              </div>
-              <button className="bg-gradient-to-r from-gold-antique to-gold-metallic text-midnight px-24 py-10 rounded-sm text-2xl font-bold uppercase tracking-[0.3em] transition-all duration-700 shadow-[0_30px_60px_rgba(170,124,17,0.3)] hover:scale-105 active:scale-95">
-                {diagnosticConfig.copy.ctaButtonText}
-              </button>
-              <div className="flex flex-wrap items-center justify-center gap-16 text-[10px] font-bold uppercase tracking-[0.4em] text-marble/30 pt-8">
-                <div className="flex items-center gap-4"><Video className="w-5 h-5 text-gold-metallic/50" /> 30-Min Strategy Call</div>
-                <div className="flex items-center gap-4"><Calculator className="w-5 h-5 text-gold-metallic/50" /> Custom Optimization Plan</div>
-                <div className="flex items-center gap-4"><ShieldCheck className="w-5 h-5 text-gold-metallic/50" /> 100% Confidential</div>
-              </div>
-            </div>
-          </section>
-
-          <section className="text-center max-w-4xl mx-auto space-y-6 pt-12 pb-24">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.4em] text-marble/20">Disclaimers</h4>
-            <p className="text-[9px] text-marble/10 leading-relaxed uppercase tracking-[0.1em] max-w-2xl mx-auto">
-              Estimates based on provided inputs. Final outcomes require document review. Strategy eligibility varies by jurisdiction and specific financial circumstances. This is a diagnostic tool for structural analysis and does not constitute formal tax, legal, or investment advice.
-            </p>
-          </section>
-        </main>
-
-        <footer className="bg-black py-32 border-t border-white/5">
-          <div className="max-w-[1400px] mx-auto px-10 grid grid-cols-1 md:grid-cols-4 gap-24">
-            <div className="space-y-10">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-gold-metallic rounded-sm flex items-center justify-center mr-4">
-                  <span className="text-midnight font-serif font-bold text-xl">{diagnosticConfig.brand.appName[0]}</span>
-                </div>
-                <span className="serif font-medium text-2xl text-marble tracking-widest uppercase">{diagnosticConfig.brand.appName}</span>
-              </div>
-              <p className="text-marble/30 text-xs leading-relaxed font-light tracking-wide">
-                Strategic wealth redirection for high-net-worth individuals and business owners.
-              </p>
-            </div>
-            <div className="space-y-8">
-              <h5 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gold-metallic">Wealth Redirection</h5>
-              <ul className="space-y-4 text-xs text-marble/40 font-light tracking-widest">
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Entity Design</li>
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Tax Optimization</li>
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Wealth Vehicles</li>
-              </ul>
-            </div>
-            <div className="space-y-8">
-              <h5 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gold-metallic">Company</h5>
-              <ul className="space-y-4 text-xs text-marble/40 font-light tracking-widest">
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">About {diagnosticConfig.brand.appName}</li>
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Security</li>
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Contact</li>
-              </ul>
-            </div>
-            <div className="space-y-8">
-              <h5 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gold-metallic">Legal</h5>
-              <ul className="space-y-4 text-xs text-marble/40 font-light tracking-widest">
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Privacy Policy</li>
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Terms of Service</li>
-                <li className="hover:text-gold-metallic transition-colors cursor-pointer">Disclosures</li>
-              </ul>
-            </div>
+        {/* Back button */}
+        {currentQ > 0 && (
+          <div className="px-6 lg:px-12 pb-8">
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-2 text-paper/30 hover:text-camel transition-colors text-sm"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back
+            </button>
           </div>
-          <div className="max-w-[1400px] mx-auto px-10 pt-24 mt-24 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-            <p className="text-[9px] text-marble/10 uppercase tracking-[0.3em]">© 2026 {diagnosticConfig.brand.appName} Strategic Wealth Redirection. All Rights Reserved.</p>
-            <div className="flex gap-10 opacity-20">
-               <ShieldCheck className="w-5 h-5 text-marble" />
-               <Lock className="w-5 h-5 text-marble" />
-               <Activity className="w-5 h-5 text-marble" />
-            </div>
-          </div>
-        </footer>
+        )}
       </div>
+    );
+  }
+
+  // ==========================================
+  // RENDER: CONTEXT SCREEN (Q13 + Q14)
+  // ==========================================
+  if (step === "context") {
+    const allContextAnswered = contextQuestions.every(
+      (cq) => contextAnswers[cq.id]
+    );
+
+    return (
+      <div className="min-h-screen deanar-bg-paper flex items-center justify-center px-6 py-16">
+        <div className="w-full max-w-2xl deanar-card p-10 md:p-16 space-y-10">
+          {/* Heading */}
+          <div className="space-y-3">
+            <h1 className="serif text-4xl md:text-5xl text-graphite font-normal">
+              One Last Thing Before Your{" "}
+              <span className="italic font-normal text-camel">Readout</span>
+            </h1>
+            <p className="font-light text-graphite/60 text-base">
+              This helps us tailor your analysis to your specific decision.
+            </p>
+          </div>
+
+          {/* Context questions */}
+          <div className="space-y-10">
+            {contextQuestions.map((cq) => (
+              <div key={cq.id} className="space-y-4">
+                <h3 className="serif text-xl md:text-2xl text-graphite font-normal">
+                  {cq.q}
+                </h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {cq.options.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() =>
+                        setContextAnswers({ ...contextAnswers, [cq.id]: opt })
+                      }
+                      className={`w-full text-left p-4 border transition-all duration-300 text-sm ${
+                        contextAnswers[cq.id] === opt
+                          ? "border-crimson bg-crimson/5 text-graphite"
+                          : "border-greige bg-paper text-graphite/70 hover:border-greige hover:bg-white"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Submit */}
+          <button
+            onClick={handleContextSubmit}
+            disabled={!allContextAnswered}
+            className="w-full btn-primary px-8 py-5 inline-flex items-center justify-center gap-3 group"
+          >
+            Generate My Readout
+            <ArrowRight className="w-4 h-4 transform transition-transform group-hover:translate-x-1" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // RENDER: PROCESSING
+  // ==========================================
+  if (step === "processing") {
+    return (
+      <ProcessingScreen
+        progress={processingProgress}
+        currentStep={processingStep}
+      />
     );
   }
 

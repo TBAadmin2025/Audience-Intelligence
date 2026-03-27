@@ -1,93 +1,206 @@
 /* ==========================================
-   VLARI DESIGN SYSTEM
+   DEANAR DESIGN SYSTEM
    ========================================== */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Montserrat", sans-serif;
   --font-serif: "Cormorant Garamond", serif;
-  
-  --color-midnight: #0A111F;
-  --color-navy-deep: #121E38;
-  --color-charcoal: #161618;
-  --color-gold-antique: #AA7C11;
-  --color-gold-metallic: #D4AF37;
-  --color-gold-light: #FCEFB4;
-  --color-marble: #EBE6DF;
+
+  --color-paper: #F0EDE6;
+  --color-greige: #D6CEC4;
+  --color-camel: #B89F82;
+  --color-crimson: #6E1618;
+  --color-oxblood: #3D0C0D;
+  --color-graphite: #24201E;
+}
+
+* {
+  border-radius: 0 !important;
 }
 
 body {
-  @apply bg-midnight text-marble font-sans antialiased;
-}
-
-.vlari-bg {
-  background-color: #0A111F;
-  background-image: 
-      radial-gradient(circle at 50% 0%, rgba(18, 30, 56, 0.8) 0%, rgba(10, 17, 31, 1) 60%),
-      url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-  background-attachment: fixed;
-  color: #EBE6DF;
-  min-height: 100vh;
+  @apply bg-paper text-graphite font-sans antialiased;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 .serif { font-family: var(--font-serif); }
 .sans { font-family: var(--font-sans); }
 
-.text-gold-gradient {
-  background: linear-gradient(135deg, #DFB951 0%, #FFF8D6 30%, #C29624 65%, #8A650C 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
+/* DEANAR Background Variants */
+.deanar-bg-graphite {
+  background-color: #24201E;
+  color: #F0EDE6;
 }
 
-.bg-gold-gradient {
-  background: linear-gradient(135deg, #AA7C11 0%, #D4AF37 100%);
+.deanar-bg-oxblood {
+  background-color: #3D0C0D;
+  color: #F0EDE6;
 }
 
+.deanar-bg-paper {
+  background-color: #F0EDE6;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  color: #24201E;
+}
+
+/* Kept for backward compat — maps to DEANAR paper */
+.vlari-bg {
+  background-color: #F0EDE6;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  color: #24201E;
+  min-height: 100vh;
+}
+
+/* Accent text — camel italic pattern */
+.text-camel-accent {
+  color: #B89F82;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Card System */
+.deanar-card {
+  background: #FFFFFF;
+  border: 1px solid #D6CEC4;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.deanar-card-shadow {
+  background: #FFFFFF;
+  border: 1px solid #D6CEC4;
+  box-shadow: 20px 20px 0px 0px rgba(214, 206, 196, 0.3);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.deanar-card-dark {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.deanar-card-dark:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Kept for backward compat */
 .artisan-card {
-  background: rgba(22, 22, 24, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  background: #FFFFFF;
+  border: 1px solid #D6CEC4;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .artisan-card:hover {
-  border-color: rgba(212, 175, 55, 0.3);
-  background: rgba(22, 22, 24, 0.6);
+  border-color: #B89F82;
 }
 
+/* Signal Card — left crimson border */
+.deanar-signal-card {
+  background: #FFFFFF;
+  border: 1px solid #D6CEC4;
+  border-left: 4px solid #6E1618;
+}
+
+/* Button System */
+.btn-primary {
+  background: #6E1618;
+  color: #F0EDE6;
+  border: 1px solid #6E1618;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3D0C0D;
+  border-color: #3D0C0D;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(61, 12, 13, 0.4);
+}
+
+.btn-primary:disabled {
+  background: rgba(214, 206, 196, 0.3);
+  color: rgba(36, 32, 30, 0.3);
+  border-color: rgba(214, 206, 196, 0.3);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #24201E;
+  border: 1px solid #24201E;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-secondary:hover {
+  background: #24201E;
+  color: #F0EDE6;
+}
+
+/* Input System */
 .glass-input {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #EBE6DF;
+  background: #FFFFFF;
+  border: 1px solid #D6CEC4;
+  color: #24201E;
   transition: all 0.3s ease;
 }
 
 .glass-input:focus {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(212, 175, 55, 0.5);
+  border-color: #B89F82;
   outline: none;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 0 0 3px rgba(184, 159, 130, 0.1);
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #AA7C11, #D4AF37);
-  color: #0A111F;
-  border: none;
-  transition: all 0.4s ease;
-  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
+/* Backward compat color utilities */
+.text-gold-gradient {
+  color: #B89F82;
 }
-.btn-primary:hover:not(:disabled) {
-  box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4);
-  transform: translateY(-2px);
+
+.bg-gold-gradient {
+  background: #6E1618;
 }
-.btn-primary:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.3);
-  box-shadow: none;
-  cursor: not-allowed;
+
+/* Tab glow animation — crimson */
+.fix-tab-glow {
+  box-shadow: 0 0 20px rgba(110, 22, 24, 0.4), 0 0 40px rgba(110, 22, 24, 0.15);
+  animation: fixGlow 2s ease-in-out infinite;
+}
+
+@keyframes fixGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(110, 22, 24, 0.4), 0 0 40px rgba(110, 22, 24, 0.15); }
+  50% { box-shadow: 0 0 35px rgba(110, 22, 24, 0.7), 0 0 60px rgba(110, 22, 24, 0.35); }
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hairline dividers */
+.divider-light {
+  height: 1px;
+  background: #D6CEC4;
+  width: 100%;
+}
+
+.divider-dark {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  width: 100%;
 }

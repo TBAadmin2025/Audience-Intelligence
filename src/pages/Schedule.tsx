@@ -1,22 +1,18 @@
 import { ShieldCheck } from "lucide-react";
 import { WealthRedirectionContent } from "../components/WealthRedirectionContent";
-import { diagnosticConfig } from "../client/config";
 
 export default function Schedule() {
   return (
-    <div className="min-h-screen font-sans vlari-bg selection:bg-gold-metallic/30 flex flex-col">
+    <div className="min-h-screen font-sans deanar-bg-paper selection:bg-camel/30 flex flex-col">
       {/* Header */}
-      <header className="bg-midnight/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
-        <div className="max-w-[1400px] mx-auto px-10 py-6 flex justify-between items-center w-full">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gold-metallic rounded-sm flex items-center justify-center mr-4 shadow-2xl">
-              <span className="text-midnight font-serif font-bold text-lg">{diagnosticConfig.brand.appName[0]}</span>
-            </div>
-            <span className="serif font-medium text-xl text-marble tracking-[0.2em] uppercase">{diagnosticConfig.brand.appName}</span>
-          </div>
-          <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-marble/30">
-            <ShieldCheck className="w-4 h-4 text-gold-metallic/40" />
-            Wealth Redirection Strategy
+      <header className="bg-graphite backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex justify-between items-center w-full">
+          <span className="serif font-medium text-xl text-paper tracking-[0.25em] uppercase">
+            DEANAR
+          </span>
+          <div className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.3em] text-paper/30">
+            <ShieldCheck className="w-4 h-4 text-camel/40" />
+            Decision Intelligence Debrief
           </div>
         </div>
       </header>
