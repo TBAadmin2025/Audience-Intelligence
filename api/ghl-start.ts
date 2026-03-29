@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { diagnosticConfig } from "../src/client/config";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -36,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       email: contact.email,
       phone: contact.phone || undefined,
       locationId,
-      tags: [diagnosticConfig.ghl.tags.started],
+      tags: ["diagnostic-started"],
     };
 
     if (existingContactId) {

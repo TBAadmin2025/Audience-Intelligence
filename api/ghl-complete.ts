@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { diagnosticConfig } from "../src/client/config";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -15,7 +14,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.json({ success: true });
   }
 
-  const { tags } = diagnosticConfig.ghl;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://diagnostic.deanarconsulting.com";
   const reportUrl = `${siteUrl}/report/${sessionId}`;
 
@@ -48,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tags: [tags.completed],
+          tags: ["diagnostic-completed"],
           customFields: [
             {
               key: "diagnostic_overall_score",
