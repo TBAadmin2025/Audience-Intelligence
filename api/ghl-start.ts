@@ -8,12 +8,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { contact } = req.body;
 
-  // Respond immediately — never block the user
-  res.json({ success: true });
-
   const apiKey = process.env.GHL_API_KEY;
   const locationId = process.env.GHL_LOCATION_ID;
-  if (!apiKey || !locationId) return;
+  if (!apiKey || !locationId) {
+    console.warn("ghl-start: Missing GHL_API_KEY or GHL_LOCATION_ID");
+    return res.json({ success: true });
+  }
 
   try {
     // Search for existing contact by email
@@ -53,9 +53,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           body: JSON.stringify(contactPayload),
         }
       );
+      console.log("GHL contact upserted:", existingContactId);
     } else {
       // Create new contact
-      await fetch("https://services.leadconnectorhq.com/contacts/", {
+      const createRes = await fetch("https://services.leadconnectorhq.com/contacts/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -64,8 +65,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         body: JSON.stringify(contactPayload),
       });
+      const createData = await createRes.json();
+      console.log("GHL contact created:", createData?.contact?.id);
     }
+
+    res.json({ success: true });
   } catch (err) {
-    console.error("GHL start webhook failed (silent):", err);
+    console.error("GHL start webhook failed:", err);
+    res.json({ success: true });
   }
 }

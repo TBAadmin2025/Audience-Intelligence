@@ -8,14 +8,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { contact, results, sessionId, commentary } = req.body;
 
-  // Respond immediately
-  res.json({ success: true });
-
   const apiKey = process.env.GHL_API_KEY;
   const locationId = process.env.GHL_LOCATION_ID;
-  if (!apiKey || !locationId) return;
+  if (!apiKey || !locationId) {
+    console.warn("ghl-complete: Missing GHL_API_KEY or GHL_LOCATION_ID");
+    return res.json({ success: true });
+  }
 
   const { tags } = diagnosticConfig.ghl;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://diagnostic.deanarconsulting.com";
+  const reportUrl = `${siteUrl}/report/${sessionId}`;
 
   try {
     // Find the contact by email
@@ -31,7 +33,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
     const searchData = await searchRes.json();
     const contactId = searchData?.contact?.id;
-    if (!contactId) return;
+    if (!contactId) {
+      console.warn("ghl-complete: Contact not found for", contact.email);
+      return res.json({ success: true });
+    }
 
     await fetch(
       `https://services.leadconnectorhq.com/contacts/${contactId}`,
@@ -63,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
             {
               key: "diagnostic_report_url",
-              field_value: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/report/${sessionId}`
+              field_value: reportUrl
             },
             {
               key: "diagnostic_completed_date",
@@ -73,7 +78,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }),
       }
     );
+
+    console.log("GHL complete fired for session:", sessionId);
+    res.json({ success: true });
   } catch (err) {
-    console.error("GHL complete webhook failed (silent):", err);
+    console.error("GHL complete webhook failed:", err);
+    res.json({ success: true });
   }
 }
