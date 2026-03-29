@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ShieldCheck, Activity, TriangleAlert, Sparkles } from "lucide-react";
+import { ShieldCheck, Activity, TriangleAlert, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
 import { WealthRedirectionContent } from "../components/WealthRedirectionContent";
 import { diagnosticConfig } from "../client/config";
 
@@ -62,31 +62,33 @@ const ScoreGauge = ({
 };
 
 const CTASection = ({ onFixMyFlow }: { onFixMyFlow: () => void }) => (
-  <section className="bg-oxblood p-16 md:p-24 text-center relative overflow-hidden">
+  <section className="bg-oxblood text-paper p-16 md:p-24 text-center relative overflow-hidden">
     <div
-      className="absolute inset-0 bg-cover bg-center opacity-10"
-      style={{
-        backgroundImage: `url('${diagnosticConfig.brand.motifs.theBigBet}')`,
-      }}
+      className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-multiply"
+      style={{ backgroundImage: `url('https://plamaotwavcwxtqwenaf.supabase.co/storage/v1/object/public/brand-assets/24605d59-6de7-48d2-b31c-44af447f6598/1771939638605_DEANAR_Motif_05_the_big_bet.png')` }}
     />
-    <div className="space-y-12 relative z-10 max-w-4xl mx-auto">
-      <div className="space-y-6">
-        <h2 className="serif text-5xl md:text-7xl font-normal text-paper leading-tight">
-          Close the Gap.
-          <br />
-          <span className="italic font-normal text-camel">
-            Before You Move Forward.
-          </span>
-        </h2>
-        <p className="text-lg text-paper/50 font-light max-w-2xl mx-auto leading-relaxed">
-          {diagnosticConfig.copy.ctaSubheadline}
-        </p>
+    <div className="space-y-8 relative z-10 max-w-3xl mx-auto">
+      <div className="inline-flex items-center gap-3 px-4 py-2 border border-camel/30 text-[10px] font-semibold uppercase tracking-[0.3em] text-camel">
+        Strategic Next Step
       </div>
+      <h2 className="serif text-5xl md:text-6xl font-normal text-paper leading-tight">
+        Close the Gap.{" "}
+        <br />
+        <span className="italic font-normal text-camel">
+          Before You Move Forward.
+        </span>
+      </h2>
+      <p className="text-paper/50 font-light text-lg max-w-2xl mx-auto">
+        Your diagnostic results reveal gaps in audience intelligence
+        that could impact this decision. Get clear on what your
+        audience is actually signaling before you move forward.
+      </p>
       <button
         onClick={onFixMyFlow}
-        className="bg-crimson text-paper border border-crimson px-16 py-6 text-sm font-semibold uppercase tracking-[0.15em] transition-all duration-400 hover:bg-crimson/90 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_-10px_rgba(110,22,24,0.4)] inline-flex items-center gap-3"
+        className="btn-primary px-12 py-6 text-sm inline-flex items-center gap-3 group"
       >
-        {diagnosticConfig.copy.ctaButtonText}
+        Fix My Audience Intelligence
+        <ArrowRight className="w-4 h-4 transform transition-transform group-hover:translate-x-1" />
       </button>
     </div>
   </section>
@@ -154,6 +156,8 @@ export default function Report() {
   }
 
   const results = session.calculated_scores;
+  results.proceedRecommendation = results.proceedRecommendation || "";
+  results.proceedDetail = results.proceedDetail || "";
   const commentary = session.ai_commentary;
 
   if (!results) {
@@ -169,17 +173,6 @@ export default function Report() {
     );
   }
 
-  const financialImpact = results.financialImpact || { low: 0, expected: 0, high: 0 };
-  const score = session.overall_score || results.score || 0;
-  const readinessBand = diagnosticConfig.readinessBand(score);
-  const scoreInterpretation = diagnosticConfig.scoreInterpretation(score);
-  const blindSpots = results.aiFlags?.blindSpots;
-  const moveType = results.aiFlags?.moveType || "Not specified";
-  const expectedOutcome = results.aiFlags?.expectedOutcome || "Not specified";
-  const investmentSize = results.aiFlags?.investmentSize || "Not specified";
-  const exposurePercent = results.aiFlags?.exposurePercent || 0;
-  const investmentMidpoint = results.metrics?.investmentMidpoint || 0;
-
   const quadrants = diagnosticConfig.quadrants.map((q, i) => ({
     id: i + 1,
     title: q.name,
@@ -192,6 +185,70 @@ export default function Report() {
     { id: "quadrants", label: diagnosticConfig.copy.tabs.breakdown },
     { id: "fix", label: diagnosticConfig.copy.tabs.action },
   ];
+
+  function getScoreInterpretation(score: number): string {
+    if (score >= 80) return "Your decision appears grounded in validated audience intelligence. The foundation behind this move is strong.";
+    if (score >= 60) return "You have directional clarity, but gaps in audience validation could weaken performance on this move.";
+    if (score >= 40) return "Your decision is partially informed. Expect inconsistency in outcomes without stronger audience intelligence.";
+    return "This move is being shaped more by assumption than evidence. The risk to your expected return is elevated.";
+  }
+
+  function getReadinessBandExplainer(band: string): string {
+    switch (band) {
+      case "Evidence-Based": return "Your decisions are anchored in validated customer truth. You have the intelligence foundation to move with confidence.";
+      case "Directionally Clear": return "You have useful signals, but there are still gaps that could weaken performance. Targeted validation before full commitment is recommended.";
+      case "Partially Informed": return "This move is being shaped by partial insight. Without stronger audience validation, you're accepting meaningful execution risk.";
+      case "Assumption-Driven": return "Your next move relies more on internal confidence than validated audience intelligence. This is the highest-risk posture for a significant business bet.";
+      default: return "";
+    }
+  }
+
+  function getProceedBorderColor(recommendation: string): string {
+    switch (recommendation) {
+      case "Proceed": return "border-camel";
+      case "Proceed with Caution": return "border-camel/60";
+      case "Pause & Validate": return "border-crimson/60";
+      case "Rework": return "border-crimson";
+      default: return "border-greige";
+    }
+  }
+
+  function getCommentaryParagraphs(commentary: string): string[] {
+    return commentary
+      .split(/\n\n+/)
+      .map((p: string) => p.trim())
+      .filter((p: string) => p.length > 0)
+      .slice(0, 4);
+  }
+
+  function getCommentaryLabel(index: number): string {
+    const labels = [
+      "Decision Readiness",
+      "Where Your Gaps Are",
+      "What's At Risk",
+      "What Needs to Be True",
+    ];
+    return labels[index] || "Analysis";
+  }
+
+  function getDimensionExplainer(key: string, score: number): string {
+    if (score >= 60) {
+      const strong: Record<string, string> = {
+        audienceClarity: "You have a reasonably clear picture of who this move is for.",
+        decisionValidation: "This decision has meaningful evidence behind it.",
+        behavioralEvidence: "Audience input is shaping this decision.",
+        messageAlignment: "Demand signals for this move are present.",
+      };
+      return strong[key] || "";
+    }
+    const weak: Record<string, string> = {
+      audienceClarity: "Who this move is for hasn't been clearly defined or validated.",
+      decisionValidation: "This decision lacks sufficient real-world validation.",
+      behavioralEvidence: "Internal assumptions are driving this more than audience signals.",
+      messageAlignment: "Demand for this move hasn't been clearly established.",
+    };
+    return weak[key] || "";
+  }
 
   return (
     <div className="min-h-screen font-sans deanar-bg-paper selection:bg-camel/30 flex flex-col">
@@ -241,249 +298,325 @@ export default function Report() {
 
       {/* TAB 1 — Your Readout */}
       {activeTab === "results" && (
-        <main className="flex-grow max-w-7xl w-full mx-auto px-6 lg:px-12 py-20 space-y-20">
-          {/* Score Hero */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            <div className="space-y-10">
-              <div className="inline-flex items-center gap-3 px-5 py-2 bg-camel/10 border border-camel/20 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-camel">
-                Your Audience Intelligence Readout
+        <main className="flex-grow max-w-[1400px] w-full mx-auto px-6 lg:px-10 py-16 space-y-16">
+
+          {/* SECTION 1 — Score Hero */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
+
+            {/* Left — headline + 3 stat cards */}
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-camel/10 border border-camel/20 text-[10px] font-semibold uppercase tracking-[0.3em] text-camel">
+                <ShieldCheck className="w-3 h-3" />
+                Private Diagnostic Results
               </div>
+
               <h1 className="serif text-5xl md:text-7xl font-normal text-graphite leading-[1.1]">
                 Your Audience Intelligence{" "}
-                <span className="italic font-normal text-camel">Score&trade;</span>
+                <span className="italic font-normal text-camel">
+                  Score™
+                </span>
               </h1>
-              <p className="text-xl text-graphite/70 font-light leading-relaxed max-w-xl">
-                {scoreInterpretation}
+
+              <p className="text-lg text-graphite/60 font-light leading-relaxed max-w-xl">
+                {getScoreInterpretation(session.overall_score)}
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="deanar-card p-8 space-y-3">
-                  <div className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-camel/60">
+
+              {/* 3 stat cards */}
+              <div className="grid grid-cols-1 gap-4">
+
+                {/* Card 1 — Decision Readiness Band */}
+                <div className="deanar-card p-6 space-y-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/70">
                     Decision Readiness Band
                   </div>
-                  <div className="text-2xl serif font-medium text-graphite">
-                    {readinessBand}
+                  <div className="serif text-2xl font-normal text-graphite">
+                    {results.confidence}
                   </div>
+                  <p className="text-sm font-light text-graphite/50 leading-relaxed">
+                    {getReadinessBandExplainer(results.confidence)}
+                  </p>
                 </div>
-                <div className="deanar-card p-8 space-y-3">
-                  <div className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-camel/60">
-                    Intelligence Confidence
+
+                {/* Card 2 — Proceed Recommendation */}
+                <div className={`deanar-card p-6 space-y-3 border-l-4 ${getProceedBorderColor(results.proceedRecommendation)}`}>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/70">
+                    Recommendation
                   </div>
-                  <div className="text-2xl serif font-medium text-graphite">
-                    {readinessBand}
+                  <div className="serif text-2xl font-normal text-graphite">
+                    {results.proceedRecommendation}
                   </div>
+                  <p className="text-sm font-light text-graphite/50 leading-relaxed">
+                    {results.proceedDetail}
+                  </p>
+                </div>
+
+                {/* Card 3 — At-Risk Exposure */}
+                <div className="deanar-card p-6 space-y-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/70">
+                    At-Risk Exposure
+                  </div>
+                  <div className="serif text-2xl font-normal text-crimson">
+                    {results.metrics?.exposurePercent || 0}% of Expected Return
+                  </div>
+                  <p className="text-sm font-light text-graphite/50 leading-relaxed">
+                    Based on your score, this portion of your expected
+                    return may be exposed to underperformance if audience
+                    intelligence gaps are not addressed.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Gauge Card */}
-            <div className="flex justify-center lg:justify-end">
-              <div className="deanar-card-shadow p-12 w-full max-w-md text-center space-y-8">
-                <div className="space-y-2">
-                  <h3 className="serif text-2xl font-medium text-graphite">
-                    Audience Intelligence Score&trade;
-                  </h3>
-                  <p className="text-[0.65rem] text-camel/30 uppercase tracking-[0.4em]">
-                    Decision Readiness Index
-                  </p>
+            {/* Right — Score gauge card */}
+            <div className="deanar-card p-10 text-center space-y-8">
+              <div className="space-y-1">
+                <h3 className="serif text-2xl font-normal text-graphite">
+                  Audience Intelligence Score™
+                </h3>
+                <p className="text-[10px] text-graphite/30 uppercase tracking-[0.4em]">
+                  Decision Readiness Index
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <ScoreGauge
+                  score={session.overall_score}
+                  size={260}
+                  strokeWidth={14}
+                  color="#B89F82"
+                />
+              </div>
+
+              <div className="pt-6 border-t border-greige space-y-3">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-graphite/30">
+                  At-Risk Investment Value
                 </div>
-                <div className="flex justify-center py-4">
-                  <ScoreGauge
-                    score={score}
-                    size={300}
-                    strokeWidth={14}
-                    color="#B89F82"
-                    textClass="text-graphite"
-                  />
+                <div className="serif text-4xl font-normal text-crimson">
+                  ${Math.round(results.financialImpact.expected).toLocaleString()}
                 </div>
-                <div className="pt-8 border-t border-greige space-y-4">
-                  <span className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-camel/30 block">
-                    At-Risk Investment Value&trade;
-                  </span>
-                  <span className="text-4xl serif font-medium text-crimson block">
-                    ${Math.round(financialImpact.expected).toLocaleString()}
-                  </span>
-                  <span className="text-[10px] text-graphite/20 italic block">
-                    Exposure Range: $
-                    {Math.round(financialImpact.low).toLocaleString()} &mdash; $
-                    {Math.round(financialImpact.high).toLocaleString()}
-                  </span>
+                <p className="text-[10px] text-graphite/30 italic">
+                  Based on {results.aiFlags?.sizeOfPrize || "your stated prize"} at {results.metrics?.exposurePercent || 0}% exposure
+                </p>
+                <div className="flex justify-between text-[10px] text-graphite/20 pt-2">
+                  <span>Conservative: ${Math.round(results.financialImpact.low).toLocaleString()}</span>
+                  <span>Aggressive: ${Math.round(results.financialImpact.high).toLocaleString()}</span>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Context Snapshot */}
-          <section className="deanar-card p-10">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              <div className="p-6 space-y-3">
-                <div className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-camel/60">
+          {/* SECTION 2 — Context Snapshot */}
+          <section className="deanar-card p-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-greige">
+              <div className="py-4 md:py-0 md:px-8 first:pl-0 space-y-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/60">
                   Move Type
                 </div>
-                <div className="serif text-xl text-graphite">{moveType}</div>
-              </div>
-              <div className="p-6 space-y-3 border-x border-greige">
-                <div className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-camel/60">
-                  Expected Outcome
-                </div>
-                <div className="serif text-xl text-graphite">
-                  {expectedOutcome}
+                <div className="serif text-lg text-graphite font-normal">
+                  {results.aiFlags?.moveType || "Not specified"}
                 </div>
               </div>
-              <div className="p-6 space-y-3">
-                <div className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-camel/60">
-                  Investment Size
+              <div className="py-4 md:py-0 md:px-8 space-y-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/60">
+                  Size of Prize
                 </div>
-                <div className="serif text-xl text-graphite">
-                  {investmentSize}
+                <div className="serif text-lg text-graphite font-normal">
+                  {results.aiFlags?.sizeOfPrize || "Not specified"}
+                </div>
+              </div>
+              <div className="py-4 md:py-0 md:px-8 space-y-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/60">
+                  Proceed Signal
+                </div>
+                <div className="serif text-lg text-graphite font-normal">
+                  {results.proceedRecommendation}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* AI Strategic Interpretation */}
+          {/* SECTION 3 — Strategic Intelligence Readout (4 cards) */}
           {commentary && (
-            <section className="deanar-card p-12 md:p-16 relative overflow-hidden">
-              <div className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 border border-camel/30 flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-camel" />
-                  </div>
-                  <h2 className="serif text-3xl font-medium text-graphite">
-                    Strategic Intelligence Readout
-                  </h2>
+            <section className="space-y-4">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 border border-camel/30 flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-camel" />
                 </div>
-                <p className="serif italic text-graphite/70 leading-relaxed whitespace-pre-wrap text-xl md:text-2xl">
-                  {commentary}
-                </p>
+                <h2 className="serif text-3xl font-normal text-graphite">
+                  Strategic Intelligence Readout
+                </h2>
               </div>
-            </section>
-          )}
 
-          {/* Blind Spot Signal */}
-          {blindSpots && (
-            <section className="deanar-signal-card p-10">
-              <div className="flex items-start gap-6">
-                <div className="p-3 bg-camel/10">
-                  <TriangleAlert className="w-6 h-6 text-camel" />
-                </div>
-                <div className="space-y-4">
-                  <h3 className="serif text-2xl font-medium text-graphite">
-                    Decision Blind Spots
-                  </h3>
-                  <span
-                    className={`text-[0.65rem] font-bold uppercase tracking-[0.2em] px-3 py-1 inline-block ${
-                      blindSpots.severity === "High"
-                        ? "bg-crimson/10 text-crimson border border-crimson/20"
-                        : blindSpots.severity === "Elevated"
-                          ? "bg-crimson/10 text-crimson border border-crimson/20"
-                          : "bg-camel/10 text-camel border border-camel/20"
-                    }`}
-                  >
-                    {blindSpots.severity} Severity
-                  </span>
-                  <p className="text-graphite/60 text-base leading-relaxed font-light">
-                    {blindSpots.message}
+              {getCommentaryParagraphs(commentary).map((para: string, i: number) => (
+                <div key={i} className="deanar-card p-8 space-y-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/60">
+                    {getCommentaryLabel(i)}
+                  </div>
+                  <p className="text-graphite/70 leading-relaxed font-light text-base">
+                    {para}
                   </p>
                 </div>
-              </div>
+              ))}
             </section>
           )}
 
-          {/* At-Risk Breakdown */}
-          <section className="deanar-card p-10 md:p-16">
-            <div className="max-w-4xl mx-auto text-center space-y-12">
-              <div className="space-y-4">
-                <h2 className="serif text-4xl font-normal text-graphite">
-                  At-Risk Investment{" "}
-                  <span className="italic font-normal text-camel">
-                    Breakdown
-                  </span>
-                </h2>
-                <p className="text-base text-graphite/40 font-light">
-                  Estimated exposure based on your score and investment size.
-                </p>
+          {/* SECTION 4 — Decision Blind Spots */}
+          {results.aiFlags?.blindSpots && (
+            <section className="deanar-card p-8 border-l-4 border-crimson space-y-4">
+              <div className="flex items-center gap-3">
+                <TriangleAlert className="w-5 h-5 text-camel flex-shrink-0" />
+                <h3 className="serif text-2xl font-normal text-graphite">
+                  Decision Blind Spots
+                </h3>
               </div>
-              <div className="grid grid-cols-3 gap-4 md:gap-8 items-center">
-                <div className="p-6 md:p-10 bg-paper border border-greige space-y-3 text-center">
-                  <div className="text-[9px] md:text-[0.65rem] font-bold uppercase tracking-[0.2em] text-graphite/30">
-                    Conservative
+              <div className="inline-flex items-center px-3 py-1 bg-crimson/10 border border-crimson/20 text-[10px] font-semibold uppercase tracking-[0.3em] text-crimson">
+                {results.aiFlags.blindSpots.severity} Severity
+              </div>
+              <p className="text-graphite/60 font-light leading-relaxed">
+                {results.aiFlags.blindSpots.message}
+              </p>
+            </section>
+          )}
+
+          {/* SECTION 5 — Dimension Score Preview */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="serif text-3xl font-normal text-graphite">
+                Dimension{" "}
+                <span className="italic text-camel">Breakdown</span>
+              </h2>
+              <button
+                onClick={() => {
+                  setActiveTab("quadrants");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/60 hover:text-camel transition-colors flex items-center gap-2"
+              >
+                View Full Breakdown
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(results.metrics.dimensionScores || {}).map(([key, score]: [string, any]) => (
+                <div key={key} className="deanar-card p-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-camel/60">
+                        {results.metrics.dimensionLabels?.[key] || key}
+                      </div>
+                      <div className={`text-sm font-semibold uppercase tracking-wide ${
+                        score >= 60 ? "text-graphite/60" : "text-crimson/80"
+                      }`}>
+                        {score >= 80 ? "Strong Foundation"
+                          : score >= 60 ? "Moderate — Gaps Present"
+                          : score >= 40 ? "Gap Detected — Needs Attention"
+                          : "Critical Gap — High Risk"}
+                      </div>
+                    </div>
+                    <ScoreGauge score={score} size={72} strokeWidth={7} color="#B89F82" />
                   </div>
-                  <div className="text-lg md:text-2xl serif font-medium text-graphite/60">
-                    ${Math.round(financialImpact.low).toLocaleString()}
-                  </div>
+                  <p className="text-xs text-graphite/50 font-light leading-relaxed border-t border-greige pt-3">
+                    {getDimensionExplainer(key, score)}
+                  </p>
                 </div>
-                <div className="p-8 md:p-12 bg-crimson text-paper space-y-3 text-center shadow-[0_20px_40px_rgba(110,22,24,0.25)]">
-                  <div className="text-[9px] md:text-[0.65rem] font-bold uppercase tracking-[0.3em] text-paper/60">
-                    Expected
-                  </div>
-                  <div className="text-2xl md:text-4xl serif font-bold">
-                    ${Math.round(financialImpact.expected).toLocaleString()}
-                  </div>
+              ))}
+            </div>
+          </section>
+
+          {/* SECTION 6 — At-Risk Breakdown */}
+          <section className="deanar-card p-10 space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="serif text-3xl font-normal text-graphite">
+                At-Risk Investment{" "}
+                <span className="italic text-camel">Breakdown</span>
+              </h2>
+              <p className="text-sm text-graphite/40 font-light">
+                Estimated exposure based on your score and size of prize.
+                This represents underperformance risk, not guaranteed loss.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 items-center">
+              <div className="p-6 bg-paper border border-greige text-center space-y-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-graphite/30">
+                  Conservative
                 </div>
-                <div className="p-6 md:p-10 bg-paper border border-greige space-y-3 text-center">
-                  <div className="text-[9px] md:text-[0.65rem] font-bold uppercase tracking-[0.2em] text-graphite/30">
-                    Aggressive
-                  </div>
-                  <div className="text-lg md:text-2xl serif font-medium text-graphite/60">
-                    ${Math.round(financialImpact.high).toLocaleString()}
-                  </div>
+                <div className="serif text-2xl font-normal text-graphite/50">
+                  ${Math.round(results.financialImpact.low).toLocaleString()}
+                </div>
+              </div>
+              <div className="p-8 bg-crimson text-paper text-center space-y-2 shadow-[0_20px_40px_rgba(110,22,24,0.25)]">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.4em] opacity-70">
+                  Expected
+                </div>
+                <div className="serif text-3xl font-normal">
+                  ${Math.round(results.financialImpact.expected).toLocaleString()}
+                </div>
+              </div>
+              <div className="p-6 bg-paper border border-greige text-center space-y-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-graphite/30">
+                  Aggressive
+                </div>
+                <div className="serif text-2xl font-normal text-graphite/50">
+                  ${Math.round(results.financialImpact.high).toLocaleString()}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Confidence & Methodology */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="deanar-card p-10 space-y-6">
-              <h3 className="serif text-2xl font-medium text-graphite">
+          {/* SECTION 7 — Methodology */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="deanar-card p-8 space-y-4">
+              <h3 className="serif text-2xl font-normal text-graphite">
                 Confidence & Assumptions
               </h3>
-              <div className="flex items-center gap-4 p-4 bg-paper border border-greige">
-                <div className="w-3 h-3 bg-camel shadow-[0_0_10px_rgba(184,159,130,0.5)]" />
-                <span className="text-[0.65rem] font-bold text-graphite uppercase tracking-[0.3em]">
-                  {readinessBand} Decision Readiness
+              <div className="flex items-center gap-3 p-4 bg-paper border border-greige">
+                <div className="w-2 h-2 bg-camel flex-shrink-0" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-graphite">
+                  {results.confidence} Decision Readiness
                 </span>
               </div>
               <p className="text-graphite/50 text-sm leading-relaxed font-light">
-                This diagnostic uses your provided inputs to model decision
-                readiness based on audience intelligence indicators. Higher
-                scores indicate stronger evidence-based decision foundations.
+                This diagnostic evaluates four dimensions of audience
+                intelligence across 12 indicators. Scores reflect the
+                degree to which your decision is informed by validated
+                audience understanding versus assumption.
               </p>
             </div>
-            <div className="deanar-card p-10 space-y-6">
-              <h3 className="serif text-2xl font-medium text-graphite">
+            <div className="deanar-card p-8 space-y-4">
+              <h3 className="serif text-2xl font-normal text-graphite">
                 Methodology Note
               </h3>
               <p className="text-graphite/50 text-sm leading-relaxed font-light">
-                This diagnostic evaluates four dimensions of audience
-                intelligence across 12 indicators. Scores reflect the degree to
-                which your decision is informed by validated audience
-                understanding versus assumption.
+                At-risk values are calculated by applying your exposure
+                percentage to your stated size of prize. This is a
+                strategic modeling tool — not a financial forecast.
+                Actual outcomes depend on execution, market conditions,
+                and how identified gaps are addressed.
               </p>
-              <div className="pt-4 flex items-center gap-6 opacity-30">
-                <div className="text-[8px] font-bold uppercase tracking-[0.2em]">
-                  Decision Intelligence Algorithm v1.0
-                </div>
+              <div className="text-[8px] font-semibold uppercase tracking-[0.2em] text-graphite/20">
+                Decision Intelligence Algorithm v1.0
               </div>
             </div>
           </section>
 
-          {/* Disclaimers */}
-          <section className="text-center max-w-4xl mx-auto space-y-4">
-            <h4 className="text-[0.65rem] font-bold uppercase tracking-[0.4em] text-graphite/40">
+          {/* SECTION 8 — Disclaimers */}
+          <section className="text-center max-w-3xl mx-auto space-y-3">
+            <h4 className="text-[10px] font-semibold uppercase tracking-[0.4em] text-graphite/30">
               Disclaimers
             </h4>
-            <p className="text-[9px] text-graphite/30 leading-relaxed uppercase tracking-[0.1em] max-w-2xl mx-auto">
-              This diagnostic is an analytical tool for strategic planning and
-              does not constitute professional consulting advice. At-risk
-              investment values represent estimated exposure, not guaranteed
-              outcomes. Final strategy recommendations require deeper
-              engagement.
+            <p className="text-[9px] text-graphite/25 leading-relaxed uppercase tracking-[0.1em]">
+              This diagnostic is an analytical tool for strategic planning
+              purposes. Results are based on provided responses and modeled
+              estimates. This does not constitute professional consulting,
+              market research, or investment advice.
             </p>
           </section>
 
-          {/* CTA */}
+          {/* SECTION 9 — CTA */}
           <CTASection onFixMyFlow={switchToFix} />
+
         </main>
       )}
 
@@ -509,9 +642,9 @@ export default function Report() {
                 const isNotEvaluated =
                   qData.score === null ||
                   qData.status === "Not Evaluated";
-                const findings = Array.isArray(qData.findings)
-                  ? qData.findings[0]
-                  : qData.findings;
+                const findings = typeof qData.findings === 'string'
+                  ? qData.findings
+                  : Array.isArray(qData.findings) ? qData.findings[0] : qData.findings;
 
                 return (
                   <div

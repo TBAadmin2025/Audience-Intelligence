@@ -213,9 +213,9 @@ export const PreQualModal = ({
   );
 };
 
-export const WealthRedirectionContent = ({
-  firstName,
-  email,
+export const AudienceIntelligenceContent = ({
+  firstName = "",
+  email = "",
 }: {
   firstName?: string;
   email?: string;
@@ -226,7 +226,7 @@ export const WealthRedirectionContent = ({
 
   return (
     <>
-      <main className="flex-grow bg-graphite">
+      <main className="flex-grow bg-graphite" style={{ willChange: 'auto', transform: 'translateZ(0)' }}>
         <div className="max-w-7xl w-full mx-auto px-6 lg:px-12 py-20 space-y-24">
           {/* Hero */}
           <section className="text-center space-y-8 max-w-4xl mx-auto">
@@ -244,20 +244,42 @@ export const WealthRedirectionContent = ({
             </p>
           </section>
 
-          {/* Video (if URL exists) */}
-          {vsl.videoUrl && (
-            <section className="max-w-4xl mx-auto space-y-10">
-              <div className="w-full overflow-hidden border border-paper/10 shadow-2xl">
-                <video
-                  className="w-full aspect-video"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  src={vsl.videoUrl}
-                />
+          {/* VSL Video */}
+          <div className="w-full max-w-4xl mx-auto space-y-10">
+            <div className="relative w-full border border-greige/20 shadow-2xl group cursor-pointer"
+                 onClick={(e) => {
+                   const video = e.currentTarget.querySelector('video');
+                   if (video) {
+                     if (video.paused) {
+                       video.play();
+                       e.currentTarget.querySelector('.play-overlay')
+                         ?.classList.add('opacity-0');
+                     } else {
+                       video.pause();
+                       e.currentTarget.querySelector('.play-overlay')
+                         ?.classList.remove('opacity-0');
+                     }
+                   }
+                 }}>
+
+              {/* Video */}
+              <video
+                className="w-full aspect-video"
+                playsInline
+                preload="metadata"
+                src="https://assets.cdn.filesafe.space/Np16p3qSzDX7nMeRB24R/media/69c92a965c912807107a1efc.mp4"
+              />
+
+              {/* Play button overlay */}
+              <div className="play-overlay absolute inset-0 flex items-center justify-center transition-opacity duration-300 bg-graphite/40">
+                <div className="w-20 h-20 bg-crimson flex items-center justify-center shadow-[0_0_40px_rgba(110,22,24,0.5)] group-hover:scale-110 transition-transform duration-300">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-1">
+                    <polygon points="5,3 19,12 5,21"/>
+                  </svg>
+                </div>
               </div>
-            </section>
-          )}
+            </div>
+          </div>
 
           {/* CTA Button */}
           <div className="text-center">
@@ -397,3 +419,5 @@ export const WealthRedirectionContent = ({
     </>
   );
 };
+
+export const WealthRedirectionContent = AudienceIntelligenceContent;

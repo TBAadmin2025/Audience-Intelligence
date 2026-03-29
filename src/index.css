@@ -16,13 +16,42 @@
   --color-graphite: #24201E;
 }
 
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  height: auto;
+  min-height: 100%;
+}
+
 * {
   border-radius: 0 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.deanar-bg-graphite,
+.deanar-bg-oxblood,
+.deanar-bg-paper {
+  will-change: auto;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 body {
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  height: auto !important;
+  min-height: 100%;
+  position: relative;
   @apply bg-paper text-graphite font-sans antialiased;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+#root {
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
 }
 
 .serif { font-family: var(--font-serif); }
@@ -37,6 +66,10 @@ body {
 .deanar-bg-oxblood {
   background-color: #3D0C0D;
   color: #F0EDE6;
+}
+
+.bg-oxblood {
+  background-color: #3D0C0D;
 }
 
 .deanar-bg-paper {

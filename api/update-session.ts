@@ -29,6 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       calculated_scores: {
         score: results.score,
         confidence: results.confidence,
+        proceedRecommendation: results.proceedRecommendation,
+        proceedDetail: results.proceedDetail,
         financialImpact: results.financialImpact,
         quadrants: results.quadrants,
         aiFlags: results.aiFlags,

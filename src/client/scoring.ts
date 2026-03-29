@@ -8,48 +8,82 @@ export interface DiagnosticAnswers {
 export interface ScoringResult {
   score: number;
   confidence: string;
+  proceedRecommendation: string;
+  proceedDetail: string;
   financialImpact: {
     low: number;
     expected: number;
     high: number;
   };
   quadrants: Record<string, {
-    score: number | null;
+    score: number;
     status: string;
-    opportunity: {
-      low: number;
-      expected: number;
-      high: number;
-    };
-    findings: string[];
+    findings: string;
   }>;
   aiFlags: Record<string, any>;
   metrics: Record<string, any>;
 }
 
-const DIMENSION_KEYS = ["audienceClarity", "decisionValidation", "behavioralEvidence", "messageAlignment"];
+const DIMENSION_KEYS = [
+  "audienceClarity",
+  "decisionValidation",
+  "behavioralEvidence",
+  "messageAlignment"
+];
 
-const EXPOSURE_PERCENT: Record<string, number> = {
-  "80-100": 0.10,
-  "60-79": 0.20,
-  "40-59": 0.35,
-  "20-39": 0.50,
-  "0-19": 0.65,
+const DIMENSION_QUESTIONS: Record<string, string[]> = {
+  audienceClarity: ["q1", "q2", "q3"],
+  decisionValidation: ["q4", "q5", "q6"],
+  behavioralEvidence: ["q7", "q8", "q9"],
+  messageAlignment: ["q10", "q11", "q12"],
+};
+
+const DIMENSION_LABELS: Record<string, string> = {
+  audienceClarity: "Audience Clarity",
+  decisionValidation: "Evidence & Validation",
+  behavioralEvidence: "Decision Inputs",
+  messageAlignment: "Readiness & Risk",
 };
 
 function getExposurePercent(score: number): number {
-  if (score >= 80) return EXPOSURE_PERCENT["80-100"];
-  if (score >= 60) return EXPOSURE_PERCENT["60-79"];
-  if (score >= 40) return EXPOSURE_PERCENT["40-59"];
-  if (score >= 20) return EXPOSURE_PERCENT["20-39"];
-  return EXPOSURE_PERCENT["0-19"];
+  if (score >= 80) return 0.10;
+  if (score >= 60) return 0.20;
+  if (score >= 40) return 0.35;
+  return 0.50;
 }
 
-function getInvestmentMidpoint(investmentLabel: string): number {
-  const match = diagnosticConfig.investmentOptions.find(
-    (opt) => opt.label === investmentLabel || opt.value === investmentLabel
-  );
-  return match?.midpoint || 7500;
+function getSizeOfPrizeMidpoint(answer: string): number {
+  if (answer.includes("Less than")) return 15000;
+  if (answer.includes("25,000 – $100")) return 62500;
+  if (answer.includes("100,000 – $500")) return 300000;
+  if (answer.includes("500,000")) return 500000;
+  return 62500;
+}
+
+function getProceedRecommendation(score: number): { label: string; detail: string } {
+  if (score >= 80) return {
+    label: "Proceed",
+    detail: "Your intelligence foundation supports this move.",
+  };
+  if (score >= 60) return {
+    label: "Proceed with Caution",
+    detail: "Address key gaps before full commitment.",
+  };
+  if (score >= 40) return {
+    label: "Pause & Validate",
+    detail: "Critical gaps need attention before this move.",
+  };
+  return {
+    label: "Rework",
+    detail: "This decision needs a stronger audience foundation.",
+  };
+}
+
+function getReadinessBand(score: number): string {
+  if (score >= 80) return "Evidence-Based";
+  if (score >= 60) return "Directionally Clear";
+  if (score >= 40) return "Partially Informed";
+  return "Assumption-Driven";
 }
 
 function getQuestionScore(questionId: string, answer: string): number {
@@ -60,8 +94,101 @@ function getQuestionScore(questionId: string, answer: string): number {
   return (question.scores || [1, 2, 3, 4])[idx] || 1;
 }
 
+function generateDimensionFindings(
+  dimension: string,
+  score: number,
+  answers: DiagnosticAnswers
+): string {
+  switch (dimension) {
+    case "audienceClarity": {
+      if (score >= 80) return "Your audience definition shows strong specificity. You understand who you're targeting, what they care about, and what drives them to act. This is a solid foundation for this move.";
+      if (score >= 60) return "You have directional clarity on your audience, but there are gaps in specificity or validation. Some assumptions may be filling in where real-time signals should be guiding your decisions.";
+      if (score >= 40) return "Your audience definition lacks the precision needed for high-confidence decision-making. The current understanding may be too broad or based on patterns that haven't been recently validated.";
+      return "This move is being built for an audience that hasn't been clearly defined or validated. Without precision on who this is for and what they actually want, the risk of misalignment is significant.";
+    }
+    case "decisionValidation": {
+      if (score >= 80) return "This decision appears well-grounded in real audience behavior and current signals. The level of validation applied gives this move a strong evidence base to build from.";
+      if (score >= 60) return "Some validation has been applied, but this decision may still carry assumptions that haven't been tested against real audience response. Gaps in external validation could lead to unexpected performance.";
+      if (score >= 40) return "This decision has limited external validation. Much of the reasoning appears to be based on internal opinion or past experience rather than current audience signals specifically gathered for this move.";
+      return "This move has not been meaningfully validated with your audience. The insight informing it may be outdated or untested — which significantly increases exposure to underperformance.";
+    }
+    case "behavioralEvidence": {
+      if (score >= 80) return "Audience intelligence is actively shaping this decision. The inputs driving this move go beyond internal opinion — real signals are informing the direction and structure of what you're building.";
+      if (score >= 60) return "Some audience input has influenced this decision, but internal thinking and past patterns still carry significant weight. There may be behavioral signals you're not yet capturing or acting on.";
+      if (score >= 40) return "This decision is primarily driven by internal perspective rather than audience intelligence. The gap between what your team believes and what your audience actually signals is a key risk factor here.";
+      return "This move is largely internally driven. Without meaningful audience input shaping the decision, you're building on confidence rather than evidence — which compounds risk at every stage of execution.";
+    }
+    case "messageAlignment": {
+      if (score >= 80) return "Demand signals for this move appear clear and active. Your audience shows readiness, and the confidence behind this move is grounded in validated understanding rather than assumption.";
+      if (score >= 60) return "There are positive indicators of demand, but readiness hasn't been fully confirmed. Some elements of this move may land as expected while others encounter friction from unvalidated assumptions.";
+      if (score >= 40) return "Demand for this move is assumed more than proven. The audience's readiness to respond hasn't been clearly established, which increases the likelihood of slower adoption or unexpected resistance.";
+      return "There are significant gaps in demand validation for this move. The audience's readiness, timing, and receptiveness to what you're bringing forward haven't been established — creating elevated execution risk.";
+    }
+    default:
+      return "Dimension analysis not available.";
+  }
+}
+
+function detectBlindSpots(
+  score: number,
+  dimensionScores: Record<string, number>,
+  answers: DiagnosticAnswers
+): { severity: string; message: string } | null {
+  if (score >= 80) return null;
+
+  const moveType = answers.moveType || "";
+  const weakest = Object.entries(dimensionScores)
+    .reduce((a, b) => a[1] < b[1] ? a : b);
+  const weakestKey = weakest[0];
+
+  let severity = "Moderate";
+  if (score < 40) severity = "High";
+  else if (score < 60) severity = "Elevated";
+
+  const moveMessages: Record<string, Record<string, string>> = {
+    "Launching a new product or offer": {
+      audienceClarity: "You're preparing to launch without a precise picture of who this is for. Product-market fit depends on this clarity — without it, early traction is at risk from day one.",
+      decisionValidation: "This offer hasn't been sufficiently validated against real audience demand. Launching without confirmed readiness increases the risk of slow adoption and wasted launch spend.",
+      behavioralEvidence: "The decision to launch appears to be primarily internally driven. Without real audience input shaping what you're bringing to market, you're betting on assumptions at the highest-stakes moment.",
+      messageAlignment: "Demand for this offer hasn't been clearly established. Your audience's readiness to buy hasn't been confirmed — which is the single biggest risk factor at launch stage.",
+    },
+    "Planning or scaling a marketing campaign": {
+      audienceClarity: "Campaign spend without audience precision is expensive. Without a sharp understanding of who you're targeting and what they need right now, you're optimizing creative for an audience you don't fully know.",
+      decisionValidation: "This campaign is being built on signals that may not reflect current audience behavior. What worked before may not be what works now — and scaling spend amplifies that risk.",
+      behavioralEvidence: "Internal thinking is driving this campaign more than audience intelligence. Message-audience mismatch is the leading cause of campaign underperformance — and it's hard to diagnose once you're already spending.",
+      messageAlignment: "Demand for what this campaign is promoting hasn't been clearly validated. Campaigns that reach the right people with the wrong timing consistently underperform their potential.",
+    },
+    "Repositioning an existing offer or brand": {
+      audienceClarity: "Repositioning without deep audience clarity risks creating confusion rather than clarity. Your audience needs to immediately understand the shift — and gaps in understanding here can erode trust you've already built.",
+      decisionValidation: "This repositioning appears to be based on internal perspective rather than validated audience insight. How your audience currently perceives you may be different from how you intend to reposition.",
+      behavioralEvidence: "The decision to reposition is primarily internally driven. Without clear audience signals confirming the need for this shift, you risk moving away from what's working without moving toward something proven.",
+      messageAlignment: "The demand for your repositioned offer hasn't been clearly established. Repositioning into a space your audience isn't actively looking for amplifies the risk of the transition.",
+    },
+    "Investing in infrastructure, systems, or equipment": {
+      audienceClarity: "Infrastructure investments assume sustained demand from a specific audience. If that audience isn't clearly understood, you may be building capacity for demand that doesn't materialize as expected.",
+      decisionValidation: "This investment hasn't been sufficiently validated against real audience demand signals. Infrastructure built ahead of confirmed need creates delayed ROI risk that compounds over time.",
+      behavioralEvidence: "This investment appears to be driven more by internal vision than audience demand signals. The gap between what you're building for and what your audience is actually pulling for is a key risk.",
+      messageAlignment: "The demand that would justify this investment hasn't been clearly established. Building ahead of confirmed audience pull is one of the most common causes of underutilized infrastructure.",
+    },
+    "Expanding into a new market or location": {
+      audienceClarity: "Expansion assumes your audience intelligence transfers. What you know about your current audience may not apply — and the gaps in that understanding amplify every risk that comes with entering new territory.",
+      decisionValidation: "This expansion hasn't been sufficiently validated with the new audience you're entering. What works in your current market may face entirely different dynamics in a new one.",
+      behavioralEvidence: "This expansion is primarily driven by internal confidence rather than validated new-market signals. New audiences require new intelligence — not extrapolation from existing patterns.",
+      messageAlignment: "Demand in the new market hasn't been clearly established. Entering new territory without confirmed audience readiness creates compounding risk across every element of the expansion.",
+    },
+  };
+
+  const moveKey = Object.keys(moveMessages).find(k =>
+    moveType.toLowerCase().includes(k.toLowerCase().split(" ")[0])
+  ) || "";
+
+  const message = moveMessages[moveKey]?.[weakestKey] ||
+    "Your current level of audience intelligence suggests gaps that could impact the performance of this decision. The areas with the weakest signals deserve attention before committing further resources.";
+
+  return { severity, message };
+}
+
 export function runScoring(answers: DiagnosticAnswers): ScoringResult {
-  // Score each question (1-4)
   const questionScores: Record<string, number> = {};
   let totalPoints = 0;
 
@@ -74,170 +201,61 @@ export function runScoring(answers: DiagnosticAnswers): ScoringResult {
   const totalPossible = 48;
   const overallScore = Math.round((totalPoints / totalPossible) * 100);
 
-  // Dimension scores
   const dimensionScores: Record<string, number> = {};
-  const dimensionQuestions: Record<string, string[]> = {
-    audienceClarity: ["q1", "q2", "q3"],
-    decisionValidation: ["q4", "q5", "q6"],
-    behavioralEvidence: ["q7", "q8", "q9"],
-    messageAlignment: ["q10", "q11", "q12"],
-  };
-
   for (const dim of DIMENSION_KEYS) {
-    const qIds = dimensionQuestions[dim];
+    const qIds = DIMENSION_QUESTIONS[dim];
     const dimTotal = qIds.reduce((sum, id) => sum + (questionScores[id] || 0), 0);
     dimensionScores[dim] = Math.round((dimTotal / 12) * 100);
   }
 
-  // Investment & at-risk calculation
-  const investmentMidpoint = getInvestmentMidpoint(answers.investmentSize || "");
+  const sizeOfPrizeMidpoint = getSizeOfPrizeMidpoint(answers.sizeOfPrize || "");
   const exposurePercent = getExposurePercent(overallScore);
-  const atRiskValue = Math.round(investmentMidpoint * exposurePercent);
-
-  // Conservative/expected/aggressive breakdown
-  const conservativeMultiplier = 0.70;
-  const aggressiveMultiplier = 1.35;
+  const atRiskValue = Math.round(sizeOfPrizeMidpoint * exposurePercent);
 
   const financialImpact = {
-    low: Math.round(atRiskValue * conservativeMultiplier),
+    low: Math.round(atRiskValue * 0.70),
     expected: atRiskValue,
-    high: Math.round(atRiskValue * aggressiveMultiplier),
+    high: Math.round(atRiskValue * 1.35),
   };
 
-  // Build quadrant results
+  const readinessBand = getReadinessBand(overallScore);
+  const proceed = getProceedRecommendation(overallScore);
+  const blindSpots = detectBlindSpots(overallScore, dimensionScores, answers);
+
   const quadrants: ScoringResult["quadrants"] = {};
-
   for (const dim of DIMENSION_KEYS) {
-    const dimScore = dimensionScores[dim];
-    const qIds = dimensionQuestions[dim];
-    const findings = generateDimensionFindings(dim, qIds, questionScores, answers);
-
     quadrants[dim] = {
-      score: dimScore,
+      score: dimensionScores[dim],
       status: "Evaluated",
-      opportunity: { low: 0, expected: 0, high: 0 },
-      findings: [findings],
+      findings: generateDimensionFindings(dim, dimensionScores[dim], answers),
     };
   }
 
-  // Decision readiness band
-  const readinessBand = diagnosticConfig.readinessBand(overallScore);
-
-  // Confidence = readiness band label
-  const confidence = readinessBand;
-
-  // Blind spot detection based on score + move type
-  const blindSpots = detectBlindSpots(overallScore, dimensionScores, answers);
-
   return {
     score: overallScore,
-    confidence,
+    confidence: readinessBand,
+    proceedRecommendation: proceed.label,
+    proceedDetail: proceed.detail,
     financialImpact,
     quadrants,
     aiFlags: {
       blindSpots,
       moveType: answers.moveType || "",
-      expectedOutcome: answers.expectedOutcome || "",
-      investmentSize: answers.investmentSize || "",
+      sizeOfPrize: answers.sizeOfPrize || "",
+      biggestConcern: answers.biggestConcern || "",
       readinessBand,
       exposurePercent: Math.round(exposurePercent * 100),
+      proceedRecommendation: proceed.label,
     },
     metrics: {
       totalPoints,
       totalPossible,
       dimensionScores,
-      investmentMidpoint,
+      dimensionLabels: DIMENSION_LABELS,
+      sizeOfPrizeMidpoint,
       atRiskValue,
       exposurePercent,
       questionScores,
     },
   };
-}
-
-function generateDimensionFindings(
-  dimension: string,
-  qIds: string[],
-  questionScores: Record<string, number>,
-  answers: DiagnosticAnswers
-): string {
-  const dimTotal = qIds.reduce((sum, id) => sum + (questionScores[id] || 0), 0);
-  const dimScore = Math.round((dimTotal / 12) * 100);
-
-  switch (dimension) {
-    case "audienceClarity": {
-      if (dimScore >= 80) return "Your audience definition shows strong specificity. You appear to understand who you\u2019re targeting, what they care about, and what drives them to act. This foundation supports confident decision-making on this move.";
-      if (dimScore >= 60) return "You have a directional understanding of your audience, but there are gaps in specificity or validation. Some assumptions may be filling in where real-time signals should be guiding your decisions.";
-      if (dimScore >= 40) return "Your audience definition lacks the precision needed for high-confidence decision-making. The current understanding may be too broad or based on outdated beliefs rather than current behavior patterns.";
-      return "Your audience identification relies heavily on assumption rather than behavioral evidence. This significantly increases the risk that your next move misses its intended target.";
-    }
-    case "decisionValidation": {
-      if (dimScore >= 80) return "This decision appears well-validated by real audience behavior and external feedback. The level of testing and validation you\u2019ve applied gives this move a strong evidence base.";
-      if (dimScore >= 60) return "Some validation has been applied, but this decision may still carry assumptions that haven\u2019t been tested against real audience response. Gaps in external validation could lead to unexpected performance.";
-      if (dimScore >= 40) return "This decision has limited external validation. Much of the reasoning appears to be based on internal opinion or past experience rather than current audience signals.";
-      return "This decision has not been meaningfully validated with your audience. Moving forward without real-world testing significantly increases exposure to underperformance.";
-    }
-    case "behavioralEvidence": {
-      if (dimScore >= 80) return "You\u2019re actively tracking and responding to behavioral signals from your audience. The quality of evidence guiding this decision is strong, including performance and revenue-linked data.";
-      if (dimScore >= 60) return "You have some behavioral signals in place, but the depth of tracking may not be sufficient for high-stakes decisions. There may be audience behaviors you\u2019re not yet capturing or acting on.";
-      if (dimScore >= 40) return "The signals guiding this decision are lightweight \u2014 primarily engagement-level metrics rather than conversion or behavioral patterns. This limits your ability to predict audience response.";
-      return "There is minimal behavioral evidence informing this decision. Without active tracking of audience response patterns, this move is largely guided by instinct rather than data.";
-    }
-    case "messageAlignment": {
-      if (dimScore >= 80) return "Your messaging appears closely aligned with how your audience thinks, speaks, and acts. The offer addresses an active problem with clear urgency and demand signals.";
-      if (dimScore >= 60) return "There is partial alignment between your messaging and your audience\u2019s actual language and priorities. Some elements may be more brand-driven than audience-driven.";
-      if (dimScore >= 40) return "Your messaging and offer may not fully reflect your audience\u2019s current priorities or language. The problem being addressed may lack urgency or relevance in the audience\u2019s perception.";
-      return "Significant misalignment detected between your messaging and your audience\u2019s current reality. The offer may not address a problem your audience is actively trying to solve.";
-    }
-    default:
-      return "Dimension analysis not available.";
-  }
-}
-
-function detectBlindSpots(
-  overallScore: number,
-  dimensionScores: Record<string, number>,
-  answers: DiagnosticAnswers
-): { severity: string; message: string } | null {
-  const moveType = answers.moveType || "";
-  const weakestDim = Object.entries(dimensionScores).reduce((a, b) => a[1] < b[1] ? a : b);
-  const weakestKey = weakestDim[0];
-  const weakestScore = weakestDim[1];
-
-  if (overallScore >= 80) return null;
-
-  let severity = "Moderate";
-  if (overallScore < 40) severity = "High";
-  else if (overallScore < 60) severity = "Elevated";
-
-  let message = "";
-
-  if (moveType.includes("product") || moveType.includes("offer")) {
-    if (weakestKey === "audienceClarity") {
-      message = "You\u2019re preparing to launch without a precise understanding of who your audience is and what drives them. Product-market alignment depends on this clarity \u2014 without it, early traction is at risk.";
-    } else if (weakestKey === "messageAlignment") {
-      message = "Your messaging may not reflect how your audience actually thinks about the problem you\u2019re solving. For a new offer, this disconnect can suppress conversion from the start.";
-    } else if (weakestKey === "decisionValidation") {
-      message = "This offer concept appears to lack sufficient external validation. Launching without confirmed audience demand increases the risk of slow adoption.";
-    } else {
-      message = "Limited behavioral evidence means you may be building for an audience response you haven\u2019t yet confirmed. Signal gaps at launch stage carry compounding risk.";
-    }
-  } else if (moveType.includes("campaign") || moveType.includes("marketing")) {
-    if (weakestKey === "behavioralEvidence") {
-      message = "Your campaign targeting appears to lack strong behavioral signals. Without understanding how your audience currently responds to similar messaging, campaign spend efficiency is at risk.";
-    } else if (weakestKey === "messageAlignment") {
-      message = "Campaign messaging that doesn\u2019t mirror audience language and psychology tends to underperform. The gap between your brand voice and audience voice could reduce conversion efficiency.";
-    } else {
-      message = "Audience intelligence gaps in this area suggest your campaign may reach the right people with the wrong message \u2014 or the wrong people entirely. Both scenarios waste investment.";
-    }
-  } else if (moveType.includes("infrastructure") || moveType.includes("equipment")) {
-    message = "Infrastructure investments assume sustained demand. If your audience understanding is incomplete, you may be building capacity for demand that doesn\u2019t materialize as expected \u2014 creating delayed ROI risk.";
-  } else if (moveType.includes("Repositioning")) {
-    message = "Repositioning without deep audience clarity risks creating more confusion, not less. Your audience needs to immediately understand the shift \u2014 gaps in understanding here can erode trust and differentiation.";
-  } else if (moveType.includes("market") || moveType.includes("location")) {
-    message = "Expanding into new territory without validated audience intelligence significantly increases exposure. What works in your current market may not translate \u2014 and the gaps in your current understanding amplify that risk.";
-  } else {
-    message = "Your current level of audience intelligence suggests gaps that could impact the performance of this decision. The areas with the weakest signals deserve attention before committing further resources.";
-  }
-
-  return { severity, message };
 }

@@ -1,196 +1,203 @@
-export interface DiagnosticQuestion {
+import type { DiagnosticAnswers } from "./scoring";
+
+export interface Question {
   id: string;
   q: string;
   options: string[];
-  dimension?: string;
-  scores?: number[];
-  condition?: (answers: Record<string, any>) => boolean;
+  scores: number[];
+  dimension: string;
 }
 
 export interface ContextQuestion {
   id: string;
   q: string;
+  subtext?: string;
   options: string[];
+  freeText?: boolean;
 }
 
-// 12 scored questions — each option maps to score 1-4 (index + 1)
-export const questions: DiagnosticQuestion[] = [
-  // DIMENSION 1: Audience Clarity (Q1-Q3)
+export const questions: Question[] = [
+  // DIMENSION 1 — Audience Clarity
   {
     id: "q1",
-    dimension: "audienceClarity",
-    q: "How clearly can you identify the specific audience for this decision?",
-    scores: [1, 2, 3, 4],
+    q: "Who is this move actually for?",
     options: [
-      "Broad or undefined (\u201Cbusiness owners\u201D, \u201Cwomen\u201D, etc.)",
-      "Some segmentation, but still generalized",
-      "Defined audience with some specificity",
-      "Highly specific, behavior-based audience",
+      "A broad or general audience",
+      "A somewhat defined group",
+      "A clearly defined audience",
+      "A highly specific group based on real buyers or behavior",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "audienceClarity",
   },
   {
     id: "q2",
-    dimension: "audienceClarity",
-    q: "How well do you understand what this audience actually cares about right now?",
-    scores: [1, 2, 3, 4],
+    q: "How confident are you that you understand what this audience actually wants right now?",
     options: [
-      "Assumptions or outdated beliefs",
-      "Some insight, not consistently validated",
-      "Based on recent interactions or feedback",
-      "Continuously informed by real-time signals",
+      "Not confident",
+      "Somewhat confident",
+      "Confident",
+      "Very confident based on recent insight",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "audienceClarity",
   },
   {
     id: "q3",
-    dimension: "audienceClarity",
-    q: "How confident are you in what motivates this audience to take action?",
-    scores: [1, 2, 3, 4],
+    q: "How clearly do you understand what would make this audience say yes — or ignore this completely?",
     options: [
-      "Guessing or projecting",
-      "Based on past experience, not current validation",
-      "Some validated patterns",
-      "Clear, tested understanding of triggers",
+      "Not clearly",
+      "Somewhat clearly",
+      "Fairly clearly",
+      "Very clearly based on real patterns or proof",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "audienceClarity",
   },
 
-  // DIMENSION 2: Decision Validation (Q4-Q6)
+  // DIMENSION 2 — Evidence & Validation
   {
     id: "q4",
-    dimension: "decisionValidation",
-    q: "Have you tested or validated this specific idea before committing to it?",
-    scores: [1, 2, 3, 4],
+    q: "What makes you believe this audience is ready for this move right now?",
     options: [
-      "No validation",
-      "Informal or internal validation",
-      "Limited external validation",
-      "Clear validation from real audience behavior",
+      "Nothing concrete — it feels like the right time",
+      "Past experience or assumptions that have worked before",
+      "Some recent signals that suggest readiness",
+      "Clear, current evidence of demand or timing",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "decisionValidation",
   },
   {
     id: "q5",
-    dimension: "decisionValidation",
-    q: "What level of real-world feedback has informed this decision?",
-    scores: [1, 2, 3, 4],
+    q: "How recent is the audience insight informing this decision?",
     options: [
-      "Internal opinions only",
-      "Anecdotal or scattered feedback",
-      "Structured feedback from audience",
-      "Clear patterns from multiple data sources",
+      "Outdated or unclear — I'm not sure when I last validated this",
+      "Based on older results that I believe still apply",
+      "Some recent input from conversations or feedback",
+      "Current, active signals I've collected specifically for this move",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "decisionValidation",
   },
   {
     id: "q6",
-    dimension: "decisionValidation",
-    q: "How much of this decision is based on what has worked before vs what is working now?",
-    scores: [1, 2, 3, 4],
+    q: "Have you seen any real-world indication that this move will work before fully committing to it?",
     options: [
-      "Mostly past assumptions",
-      "Some recent data, mostly historical",
-      "Mix of past + current signals",
-      "Primarily driven by current audience behavior",
+      "No — we're moving forward based on the strength of the idea",
+      "Very limited — mostly internal validation",
+      "Some indication from early conversations or testing",
+      "Yes — clear validation from real audience behavior",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "decisionValidation",
   },
 
-  // DIMENSION 3: Behavioral Evidence (Q7-Q9)
+  // DIMENSION 3 — Decision Inputs
   {
     id: "q7",
-    dimension: "behavioralEvidence",
-    q: "What signals are you using to guide this decision?",
-    scores: [1, 2, 3, 4],
+    q: "What is primarily driving this decision?",
     options: [
-      "Gut instinct or internal discussion",
-      "Light metrics (engagement, likes, etc.)",
-      "Conversion or performance indicators",
-      "Strong behavioral + revenue-linked signals",
+      "Gut instinct and pattern recognition",
+      "Internal ideas or team opinions",
+      "A mix of instinct and some audience input",
+      "Clear audience insight and current market signals",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "behavioralEvidence",
   },
   {
     id: "q8",
-    dimension: "behavioralEvidence",
-    q: "How closely are you tracking how your audience is currently responding to similar offers/messages?",
-    scores: [1, 2, 3, 4],
+    q: "How much of this move has been shaped by real audience input rather than internal assumptions?",
     options: [
-      "Not tracking",
-      "Occasional observation",
-      "Regular tracking",
-      "Actively analyzing and adjusting based on data",
+      "Very little — this is mostly internally driven",
+      "Some — we've incorporated a little audience feedback",
+      "A meaningful amount — audience input has shaped key elements",
+      "Most of it — audience intelligence is central to how this was built",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "behavioralEvidence",
   },
   {
     id: "q9",
-    dimension: "behavioralEvidence",
-    q: "How often do you uncover surprises about your audience behavior?",
-    scores: [1, 2, 3, 4],
+    q: "When making decisions like this, how often do you rely on what worked before instead of confirming what will work now?",
     options: [
-      "Rarely \u2014 we assume we already know",
-      "Occasionally",
-      "Regularly learning new insights",
-      "Constantly refining understanding based on new behavior",
+      "Almost always — our past success is our best guide",
+      "Often — we lean on experience more than current research",
+      "Sometimes — we try to balance past experience with current signals",
+      "Rarely — we actively validate before assuming past patterns still apply",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "behavioralEvidence",
   },
 
-  // DIMENSION 4: Message & Offer Alignment (Q10-Q12)
+  // DIMENSION 4 — Readiness & Risk
   {
     id: "q10",
-    dimension: "messageAlignment",
-    q: "How confident are you that your messaging reflects how your audience actually thinks and speaks?",
-    scores: [1, 2, 3, 4],
+    q: "How clear is the demand for this move right now?",
     options: [
-      "Internally created messaging",
-      "Some alignment, but mostly brand-driven",
-      "Reflects some real audience language",
-      "Directly mirrors audience voice and psychology",
+      "Unclear — we're betting on creating demand",
+      "Assumed more than proven — we believe the demand is there",
+      "Some indication of demand from signals we've observed",
+      "Clear demand is already visible and active",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "messageAlignment",
   },
   {
     id: "q11",
-    dimension: "messageAlignment",
-    q: "How well does this decision solve a problem your audience is actively trying to fix?",
-    scores: [1, 2, 3, 4],
+    q: "If this launched today, how confident are you that it would land with the right audience?",
     options: [
-      "Not clearly tied to a real problem",
-      "General problem, not urgent",
-      "Relevant problem with some urgency",
-      "Clear, active, high-priority problem",
+      "Not confident — there are too many unknowns",
+      "Somewhat confident — we think it will work but aren't certain",
+      "Confident — we have good reason to believe this will resonate",
+      "Very confident — based on validated audience understanding",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "messageAlignment",
   },
   {
     id: "q12",
-    dimension: "messageAlignment",
-    q: "How confident are you that your audience is ready to act on this right now?",
-    scores: [1, 2, 3, 4],
+    q: "If this move underperformed, how likely is it that the problem would trace back to audience misalignment?",
     options: [
-      "No urgency or timing validation",
-      "Assumed readiness",
-      "Some signals of readiness",
-      "Strong evidence of demand or timing",
+      "Very likely — we know our audience understanding has gaps",
+      "Somewhat likely — there are areas we haven't fully validated",
+      "Slightly likely — we feel reasonably confident in our audience read",
+      "Unlikely — we have strong audience intelligence backing this move",
     ],
+    scores: [1, 2, 3, 4],
+    dimension: "messageAlignment",
   },
 ];
 
-// Context questions — shown on dedicated screen after Q12, before processing
 export const contextQuestions: ContextQuestion[] = [
   {
     id: "moveType",
-    q: "What kind of move are you making right now?",
+    q: "What type of move are you making right now?",
     options: [
       "Launching a new product or offer",
-      "Planning a marketing campaign",
-      "Repositioning an existing offer",
-      "Investing in equipment or infrastructure",
-      "Building or refining a platform / technology",
+      "Planning or scaling a marketing campaign",
+      "Repositioning an existing offer or brand",
+      "Investing in infrastructure, systems, or equipment",
       "Expanding into a new market or location",
     ],
   },
   {
-    id: "expectedOutcome",
-    q: "What outcome are you expecting from this?",
+    id: "sizeOfPrize",
+    q: "What does your business expect to generate from this move?",
+    subtext: "This is not what you're spending — this is the revenue or value you expect this move to produce.",
     options: [
-      "Increase revenue quickly",
-      "Improve conversion/performance",
-      "Expand into a new audience",
-      "Strengthen positioning/brand",
-      "Fix something that isn\u2019t working",
+      "Less than $25,000",
+      "$25,000 – $100,000",
+      "$100,000 – $500,000",
+      "$500,000+",
     ],
+  },
+  {
+    id: "biggestConcern",
+    q: "What is your biggest concern about this move right now?",
+    subtext: "Optional — but the more specific you are, the more tailored your readout will be.",
+    options: [],
+    freeText: true,
   },
 ];
