@@ -6,12 +6,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-    console.error("update-session: Missing SUPABASE_URL or SUPABASE_ANON_KEY");
+  if (!process.env.TENANT_ID) {
+    console.error("update-session: Missing TENANT_ID");
+    return res.status(500).json({ error: "TENANT_ID environment variable is not configured" });
+  }
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("update-session: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
     return res.status(500).json({ error: "Supabase not configured" });
   }
 
-  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   const { sessionId, results, rawAnswers, commentary } = req.body;
 
@@ -41,7 +48,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       diagnostic_status: "Completed",
       report_url: `/report/${sessionId}`,
     })
-    .eq("id", sessionId);
+    .eq("id", sessionId)
+    .eq("tenant_id", process.env.TENANT_ID);
 
   if (error) {
     console.error("Supabase update-session error:", error);

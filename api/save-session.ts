@@ -11,12 +11,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "TENANT_ID environment variable is not configured" });
   }
 
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-    console.error("save-session: Missing SUPABASE_URL or SUPABASE_ANON_KEY");
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("save-session: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
     return res.status(500).json({ error: "Supabase not configured" });
   }
 
-  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   const { contact } = req.body;
 
